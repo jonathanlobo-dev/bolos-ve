@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es-VE">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#121212" />
+    <title>Bolitas</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <h1 class="brand">🟡 Bolitas</h1>
+        <div class="topbar-actions">
+          <button id="clearBtn" class="icon-btn" title="Limpiar monto" aria-label="Limpiar">🧹</button>
+          <button id="shareBtn" class="icon-btn" title="Compartir tasas" aria-label="Compartir">📤</button>
+          <button id="configBtn" class="icon-btn" title="Configuración" aria-label="Configuración">⚙️</button>
+          <button id="refreshBtn" class="icon-btn" title="Actualizar" aria-label="Actualizar">⟳</button>
+        </div>
+      </header>
+
+      <!-- ===== INICIO: calculadora implícita + tarjetas ===== -->
+      <section id="view-home" class="view active">
+        <div class="calc-bar">
+          <input
+            id="calcAmount"
+            class="calc-input"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="0,00"
+          />
+          <button id="dirToggle" class="dir-toggle">$ → Bs</button>
+        </div>
+
+        <div class="quick-amounts">
+          <button class="chip" data-amt="1">1</button>
+          <button class="chip" data-amt="10">10</button>
+          <button class="chip" data-amt="50">50</button>
+          <button class="chip" data-amt="100">100</button>
+        </div>
+
+        <div id="cardsContainer" class="cards layout-columns"></div>
+        <p id="homeUpdated" class="updated">Cargando…</p>
+        <p class="hint">Mantén presionada una tarjeta para copiar el monto · ⚙️ para configurar.</p>
+      </section>
+
+      <!-- ===== CALCULADORAS ===== -->
+      <section id="view-calc" class="view">
+        <!-- Menú -->
+        <div id="calcHub" class="calc-hub">
+          <button class="calc-tile" data-panel="pm">
+            <span class="calc-tile-ico">💸</span>
+            <span class="calc-tile-name">Pago Móvil</span>
+            <span class="calc-tile-desc">Comisión del pago móvil</span>
+          </button>
+          <button class="calc-tile" data-panel="conviene">
+            <span class="calc-tile-ico">⚖️</span>
+            <span class="calc-tile-name">¿Me conviene?</span>
+            <span class="calc-tile-desc">Pagar en Bs o en $</span>
+          </button>
+        </div>
+
+        <!-- Panel: Pago Móvil -->
+        <div class="calc-panel hidden" data-panel="pm">
+          <button class="calc-back">← Calculadoras</button>
+          <h2 class="view-title">💸 Calculadora de Pago Móvil</h2>
+          <p class="view-intro">Muchos bancos cobran una comisión por cada pago móvil. Esta calculadora la toma en cuenta en los dos sentidos.</p>
+          <div class="card">
+            <div class="seg">
+              <button class="pm-mode-btn active" data-mode="send">Quiero enviar</button>
+              <button class="pm-mode-btn" data-mode="have">Tengo en cuenta</button>
+            </div>
+            <p id="pmModeHelp" class="pm-mode-help"></p>
+            <label id="pmAmountLabel" class="field-label">Monto a enviar (lo que recibe la persona)</label>
+            <input id="pmAmount" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="0,00" />
+            <label class="field-label">Comisión del banco (%)</label>
+            <input id="pmFee" class="input" type="number" inputmode="decimal" step="0.01" value="0.30" />
+            <p class="field-hint">Es el % que cobra tu banco por pago móvil. Por defecto 0,30%. Ajústalo si tu banco cobra otro.</p>
+            <div class="result">
+              <span id="pmResult" class="result-value">—</span>
+              <button id="pmCopyBtn" class="copy-btn">Copiar</button>
+            </div>
+            <p id="pmDetail" class="pm-detail"></p>
+          </div>
+        </div>
+
+        <!-- Panel: ¿Me conviene? -->
+        <div class="calc-panel hidden" data-panel="conviene">
+          <button class="calc-back">← Calculadoras</button>
+          <h2 class="view-title">⚖️ ¿Me conviene?</h2>
+          <p class="view-intro">El comercio te da un precio en dólares y otro en bolívares. Pon ambos y la tasa a la que conseguirías los Bs; te decimos cuál te sale más barato.</p>
+          <div class="card">
+            <label class="field-label">Precio en dólares (efectivo / USDT)</label>
+            <input id="convUsd" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="0,00" />
+            <label class="field-label">Precio en bolívares (Bs)</label>
+            <input id="convBs" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="0,00" />
+            <label class="field-label">Tasa para conseguir los Bs</label>
+            <select id="convRate" class="input"></select>
+            <input id="convCustomRate" class="input hidden" type="number" inputmode="decimal" placeholder="Tu tasa: Bs por 1 $ (ej: 760)" />
+            <div id="convResult" class="conv-result"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ALERTAS ===== -->
+      <section id="view-alerts" class="view">
+        <div class="card">
+          <label class="field-label">Avisarme cuando</label>
+          <select id="alertMetric" class="input"></select>
+
+          <label class="field-label">Sea</label>
+          <select id="alertOp" class="input">
+            <option value="gte">mayor o igual que</option>
+            <option value="lte">menor o igual que</option>
+          </select>
+
+          <label class="field-label">Valor</label>
+          <input id="alertValue" class="input" type="number" inputmode="decimal" placeholder="Ej: 750" />
+
+          <button id="addAlertBtn" class="primary-btn">Crear alerta</button>
+        </div>
+        <div id="alertsList" class="alerts-list"></div>
+      </section>
+
+      <!-- ===== PANEL CONFIGURACIÓN (bottom sheet) ===== -->
+      <div id="configPanel" class="sheet hidden">
+        <div class="sheet-content">
+          <div class="sheet-head">
+            <h2>⚙️ Configuración</h2>
+            <button id="configClose" class="icon-btn" aria-label="Cerrar">✕</button>
+          </div>
+
+          <p class="field-label">Tasas — 👁️ mostrar/ocultar · ≡ arrastra para ordenar</p>
+          <div id="configList" class="config-list"></div>
+
+          <p class="field-label">Diseño de tarjetas</p>
+          <div class="seg">
+            <button class="layout-btn" data-layout="columns">▦ Columnas</button>
+            <button class="layout-btn" data-layout="list">▤ Listado</button>
+          </div>
+
+          <p class="field-label">Tema</p>
+          <div class="seg">
+            <button class="theme-btn" data-theme="system">Sistema</button>
+            <button class="theme-btn" data-theme="light">☀️ Claro</button>
+            <button class="theme-btn" data-theme="dark">🌙 Oscuro</button>
+          </div>
+
+          <p class="field-label">Notificación diaria de la tasa</p>
+          <div class="daily-row">
+            <label class="daily-switch"><input type="checkbox" id="dailyToggle" /> Activar</label>
+            <input type="time" id="dailyTime" class="input daily-time" value="08:00" />
+          </div>
+          <p class="hint" style="text-align:left;margin-top:4px;">Te avisa cada día a esa hora con las últimas tasas.</p>
+          <button id="dailyTest" class="layout-btn" style="width:100%;margin-top:8px;">🔔 Enviar notificación de prueba</button>
+
+          <button id="onbReplayBtn" class="layout-btn" style="width:100%;margin-top:14px;">📖 Ver tutorial de nuevo</button>
+        </div>
+      </div>
+
+      <!-- ===== ONBOARDING (tutorial) ===== -->
+      <div id="onboarding" class="sheet hidden">
+        <div class="onb-card">
+          <div id="onbContent"></div>
+          <div class="onb-dots" id="onbDots"></div>
+          <div class="onb-actions">
+            <button id="onbSkip" class="onb-skip">Saltar</button>
+            <button id="onbNext" class="primary-btn onb-next">Siguiente</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== BARRA INFERIOR: banner (no invasivo) + pestañas ===== -->
+      <div class="bottom-stack">
+        <div id="adBanner" class="ad-banner">
+          <span>Publicidad</span>
+        </div>
+        <nav class="tabbar">
+          <button class="tab active" data-view="home">🏠<span>Inicio</span></button>
+          <button class="tab" data-view="calc">🧮<span>Calculadoras</span></button>
+          <button class="tab" data-view="alerts">🔔<span>Alertas</span></button>
+        </nav>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

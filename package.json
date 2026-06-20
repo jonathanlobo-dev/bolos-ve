@@ -1,0 +1,31 @@
+{
+  "name": "bolitas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "cap:add": "cap add android",
+    "cap:sync": "npm run build && cap sync android",
+    "cap:open": "cap open android",
+    "logo": "node tools/make-logo.mjs",
+    "assets:gen": "capacitor-assets generate --android --iconBackgroundColor #121212 --iconBackgroundColorDark #121212 --splashBackgroundColor #121212 --splashBackgroundColorDark #121212"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "^6.1.0",
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/local-notifications": "^6.1.0",
+    "@capacitor/preferences": "^6.0.2",
+    "@capacitor/share": "^6.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^6.1.2",
+    "sharp": "^0.33.5",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2"
+  }
+}

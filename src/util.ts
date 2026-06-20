@@ -1,0 +1,90 @@
+// Utilidades compartidas: formato de número, copiar al portapapeles + toast.
+
+/** Formatea un número al estilo Venezuela: miles con "." y 2 decimales con ",". */
+export const fmt = (n: number) =>
+  n.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+export async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // Fallback para contextos sin permiso de portapapeles
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
+export function toast(message: string): void {
+  let el = document.getElementById("toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    el.className = "toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  el.classList.add("show");
+  const anyEl = el as HTMLElement & { _t?: number };
+  if (anyEl._t) clearTimeout(anyEl._t);
+  anyEl._t = window.setTimeout(() => el?.classList.remove("show"), 1400);
+}
+
+/** Vibración corta de feedback (si el dispositivo lo soporta). */
+export function buzz(ms = 30): void {
+  try {
+    navigator.vibrate?.(ms);
+  } catch {
+    /* no soportado */
+  }
+}
+
+/**
+ * Mantener presionado un elemento (~0.45s) para copiar.
+ * `getText` devuelve el texto a copiar (o null si no hay nada).
+ * `label` arma el mensaje del toast.
+ */
+export function attachHoldToCopy(
+  el: HTMLElement,
+  getText: () => string | null,
+  label: (t: string) => string = (t) => `Copiado: ${t}`,
+): void {
+  let timer: number | undefined;
+  let sx = 0;
+  let sy = 0;
+  const start = (e: PointerEvent) => {
+    sx = e.clientX;
+    sy = e.clientY;
+    timer = window.setTimeout(() => {
+      const text = getText();
+      if (!text) return;
+      copyText(text);
+      buzz(30);
+      el.classList.add("copied");
+      setTimeout(() => el.classList.remove("copied"), 350);
+      toast(label(text));
+    }, 450);
+  };
+  const cancel = () => {
+    if (timer) clearTimeout(timer);
+  };
+  const move = (e: PointerEvent) => {
+    if (Math.hypot(e.clientX - sx, e.clientY - sy) > 10) cancel();
+  };
+  el.addEventListener("pointerdown", start);
+  el.addEventListener("pointerup", cancel);
+  el.addEventListener("pointercancel", cancel);
+  el.addEventListener("pointermove", move);
+  el.addEventListener("pointerleave", cancel);
+}

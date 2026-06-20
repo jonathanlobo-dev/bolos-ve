@@ -1,0 +1,34 @@
+# Dependencias y build web
+node_modules/
+dist/
+*.local
+.DS_Store
+.env
+
+# Backend (server/)
+server/node_modules/
+
+# Capacitor / Android: guardamos el código nativo pero NO los artefactos de compilación
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/.idea/
+android/local.properties
+android/app/release/
+android/app/debug/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+*.apk
+*.aab
+
+# Llaves de firma (NUNCA subir)
+*.keystore
+*.jks
+
+# Imágenes generadas (se regeneran con: npm run logo)
+assets/logo.png
+assets/logo-dark.png
+assets/playstore-icon-512.png
+assets/feature-graphic-1024x500.png

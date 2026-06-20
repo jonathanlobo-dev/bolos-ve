@@ -1,0 +1,782 @@
+:root,
+:root[data-theme="dark"] {
+  --bg: #0f0f0f;
+  --surface: #1b1b1b;
+  --surface-2: #262626;
+  --border: var(--border);
+  --gold: #ffc400;
+  --gold-dim: #c79a00;
+  --text: #f5f5f5;
+  --text-dim: #9e9e9e;
+  --up: #4caf50;
+  --down: #f44336;
+  --radius: 16px;
+}
+
+:root[data-theme="light"] {
+  --bg: #f4f4f5;
+  --surface: #ffffff;
+  --surface-2: #ececef;
+  --border: #dcdce0;
+  --gold: #b8860b;
+  --gold-dim: #9a7100;
+  --text: #1a1a1a;
+  --text-dim: #6b6b70;
+  --up: #2e7d32;
+  --down: #c62828;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* ---- Topbar ---- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  padding-top: max(env(safe-area-inset-top), 14px);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+.brand {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.topbar-actions {
+  display: flex;
+  gap: 6px;
+}
+.icon-btn {
+  background: var(--surface);
+  border: none;
+  color: var(--gold);
+  font-size: 1.2rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.icon-btn.spin {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- Vistas ---- */
+.view {
+  display: none;
+  flex: 1;
+  padding: 8px 16px 140px; /* deja espacio para banner + tabbar */
+  overflow-y: auto;
+}
+.view.active {
+  display: block;
+}
+
+/* utilidad global para ocultar elementos */
+.hidden {
+  display: none !important;
+}
+
+/* ---- Calculadora implícita (barra superior) ---- */
+.calc-bar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.calc-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 2rem;
+  font-weight: 700;
+  outline: none;
+  min-width: 0;
+}
+.calc-input::placeholder {
+  color: #555;
+}
+.dir-toggle {
+  background: var(--surface-2);
+  border: 1px solid #3a3a3a;
+  color: var(--gold);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ---- Atajos de montos rápidos ---- */
+.quick-amounts {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 2px;
+}
+.chip {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.chip:active {
+  background: var(--gold);
+  color: #1a1a1a;
+  border-color: var(--gold);
+}
+
+/* ---- Indicador de "deslizar para actualizar" ---- */
+#pullInd {
+  position: fixed;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  opacity: 0;
+  z-index: 60;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+#pullInd.ready {
+  border-color: var(--gold);
+}
+#pullInd.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* flash al copiar (resultados) */
+.result.copied,
+.conv-result.copied {
+  box-shadow: 0 0 0 2px var(--gold);
+  border-radius: 10px;
+}
+
+/* ---- Tarjetas de tasas ---- */
+.cards {
+  margin-top: 6px;
+}
+.cards.layout-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cards.layout-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.rate-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  min-width: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.12s, border-color 0.2s, background 0.2s;
+}
+.rate-card.copied {
+  border-color: var(--gold);
+  background: #241f08;
+  transform: scale(0.98);
+}
+.cards.layout-columns .rate-converted {
+  font-size: 1.4rem;
+}
+.rate-head {
+  margin-bottom: 4px;
+}
+.rate-title {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.rate-converted {
+  font-size: 1.7rem;
+  font-weight: 800;
+  word-break: break-all;
+}
+.rate-unit {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+.rate-prev {
+  color: #6f6f6f;
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+.rate-badge {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+.rate-badge.up {
+  color: var(--up);
+  background: rgba(76, 175, 80, 0.12);
+}
+.rate-badge.down {
+  color: var(--down);
+  background: rgba(244, 67, 54, 0.12);
+}
+.rate-badge.flat {
+  color: var(--text-dim);
+  background: var(--surface-2);
+}
+
+.updated {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin-top: 16px;
+}
+.hint {
+  text-align: center;
+  color: #5a5a5a;
+  font-size: 0.72rem;
+  margin-top: 4px;
+}
+.empty {
+  color: var(--text-dim);
+  text-align: center;
+  padding: 24px 0;
+}
+
+/* ---- Tarjetas / formularios genéricos ---- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field-label {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-top: 6px;
+}
+.input {
+  background: var(--surface-2);
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1.05rem;
+  padding: 12px 14px;
+  width: 100%;
+  outline: none;
+}
+.input:focus {
+  border-color: var(--gold);
+}
+
+.seg {
+  display: flex;
+  gap: 8px;
+}
+.seg-btn,
+.pm-mode-btn {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid #3a3a3a;
+  color: var(--text-dim);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.seg-btn.active,
+.pm-mode-btn.active {
+  background: var(--gold);
+  color: #1a1a1a;
+  border-color: var(--gold);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 16px;
+}
+.result-value {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--gold);
+  word-break: break-all;
+}
+.copy-btn {
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.copy-btn:active {
+  background: var(--gold);
+  color: #1a1a1a;
+}
+.pm-detail {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-top: 10px;
+}
+.view-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 6px 2px 4px;
+}
+.view-intro {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin: 0 2px 14px;
+}
+.pm-mode-help {
+  color: var(--gold);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  background: rgba(255, 196, 0, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 4px 0 2px;
+}
+.field-hint {
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  margin: 4px 2px 0;
+}
+
+/* ---- Hub de Calculadoras ---- */
+.calc-hub {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 6px;
+}
+.calc-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+}
+.calc-tile:active {
+  border-color: var(--gold);
+}
+.calc-tile-ico {
+  font-size: 1.8rem;
+}
+.calc-tile-name {
+  font-weight: 700;
+  font-size: 1rem;
+}
+.calc-tile-desc {
+  color: var(--text-dim);
+  font-size: 0.76rem;
+}
+.calc-back {
+  background: transparent;
+  border: none;
+  color: var(--gold);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px 0 10px;
+}
+
+/* ---- Comparador ¿Me conviene? ---- */
+.conv-result {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.conv-opt {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-2);
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+}
+.conv-opt.win {
+  border-color: var(--up);
+  background: rgba(76, 175, 80, 0.12);
+}
+.conv-opt small {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+}
+.conv-verdict {
+  text-align: center;
+  font-size: 0.95rem;
+  margin-top: 6px;
+}
+.conv-verdict b {
+  color: var(--gold);
+}
+
+.primary-btn {
+  background: var(--gold);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+/* ---- Alertas ---- */
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+.alert-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+.del-btn {
+  background: transparent;
+  border: none;
+  color: var(--down);
+  font-size: 1.1rem;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+}
+
+/* ---- Panel Configuración (bottom sheet) ---- */
+.sheet {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+}
+.sheet.hidden {
+  display: none;
+}
+.sheet-content {
+  background: var(--bg);
+  width: 100%;
+  max-width: 520px;
+  border-radius: 20px 20px 0 0;
+  border: 1px solid var(--border);
+  padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0));
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.sheet-head h2 {
+  font-size: 1.2rem;
+}
+.config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.config-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
+}
+.config-row.off {
+  opacity: 0.45;
+}
+.config-row.dragging {
+  border-color: var(--gold);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  position: relative;
+  z-index: 5;
+  transition: none; /* sigue al dedo sin retardo */
+}
+.config-row .eye {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  width: 32px;
+}
+.config-name {
+  flex: 1;
+  font-weight: 600;
+}
+.reorder {
+  color: #777;
+  font-size: 1.4rem;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  padding: 0 4px;
+}
+.layout-btn,
+.theme-btn {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid #3a3a3a;
+  color: var(--text-dim);
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.layout-btn.active,
+.theme-btn.active {
+  background: var(--gold);
+  color: #1a1a1a;
+  border-color: var(--gold);
+}
+
+/* ---- Notificación diaria (Configuración) ---- */
+.daily-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.daily-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.daily-time {
+  flex: 1;
+}
+
+/* ---- Onboarding (tutorial) ---- */
+#onboarding {
+  align-items: center;
+}
+.onb-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 20px;
+  padding: 28px 24px 22px;
+  text-align: center;
+}
+.onb-ico {
+  font-size: 3.2rem;
+}
+.onb-title {
+  font-size: 1.4rem;
+  margin: 10px 0 8px;
+}
+.onb-text {
+  color: var(--text-dim);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+.onb-text b {
+  color: var(--text);
+}
+.onb-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 22px 0;
+}
+.onb-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--surface-2);
+}
+.onb-dot.on {
+  background: var(--gold);
+}
+.onb-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.onb-skip {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 12px;
+}
+.onb-next {
+  flex: 1;
+  margin: 0;
+}
+
+/* ---- Toast (aviso flotante) ---- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 130px;
+  transform: translateX(-50%) translateY(20px);
+  background: #2e2e2e;
+  color: #fff;
+  border: 1px solid var(--gold);
+  padding: 12px 18px;
+  border-radius: 24px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 100;
+  max-width: 90%;
+  text-align: center;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---- Barra inferior: banner + tabbar ---- */
+.bottom-stack {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 520px;
+  z-index: 40;
+}
+.ad-banner {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #161616;
+  border-top: 1px solid #242424;
+  color: #555;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.tabbar {
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.3rem;
+  padding: 10px 0 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.tab span {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.tab.active {
+  color: var(--gold);
+}

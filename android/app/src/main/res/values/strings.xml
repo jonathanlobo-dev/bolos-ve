@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bolitas</string>
+    <string name="title_activity_main">Bolitas</string>
+    <string name="package_name">com.bolitas.app</string>
+    <string name="custom_url_scheme">com.bolitas.app</string>
+</resources>

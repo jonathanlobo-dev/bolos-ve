@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <radialGradient id="coin" cx="50%" cy="40%" r="62%">
+      <stop offset="0%" stop-color="#FFE17A"/>
+      <stop offset="55%" stop-color="#FFC400"/>
+      <stop offset="100%" stop-color="#E0A800"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="500" fill="#121212"/>
+  <!-- moneda -->
+  <circle cx="245" cy="250" r="150" fill="url(#coin)" stroke="#B8860B" stroke-width="16"/>
+  <text x="245" y="250" font-family="Arial, Helvetica, sans-serif" font-size="135" font-weight="800"
+        fill="#1A1A1A" text-anchor="middle" dominant-baseline="central">Bs</text>
+  <!-- textos -->
+  <text x="450" y="215" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="800" fill="#FFC400">Bolitas</text>
+  <text x="452" y="285" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="600" fill="#F5F5F5">Dólar BCV · Euro · P2P en vivo</text>
+  <text x="452" y="335" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#9E9E9E">Calculadoras de pago móvil y alertas</text>
+</svg>
