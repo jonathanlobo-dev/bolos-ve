@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.bolitas.app",
-  appName: "Bolitas",
+  appName: "Bolos VE",
   webDir: "dist",
   backgroundColor: "#121212",
   plugins: {

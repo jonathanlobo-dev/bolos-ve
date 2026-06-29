@@ -1,4 +1,4 @@
-# Bolitas — Ícono, Splash y APK de Android
+# Bolos VE — Ícono, Splash y APK de Android
 
 Guía para convertir la web app en un **APK instalable** con su ícono y pantalla de carga.
 
@@ -55,7 +55,7 @@ npm run cap:sync    # reconstruye y copia los cambios a Android
 Luego volvés a correr/compilar en Android Studio.
 
 ## Nombre e identificador
-- Nombre visible: **Bolitas** · ID: **com.bolitas.app**
+- Nombre visible: **Bolos VE** · ID: **com.bolitas.app**
   (configurado en `capacitor.config.ts`).
 
 ## Notas

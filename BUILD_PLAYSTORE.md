@@ -1,4 +1,4 @@
-# Publicar Bolitas en Google Play Store
+# Publicar Bolos VE en Google Play Store
 
 Para Play Store se sube un **AAB firmado** (Android App Bundle), no un APK debug.
 Esta guía te lleva desde cero hasta el archivo `app-release.aab` listo para subir.
@@ -74,7 +74,7 @@ En Android Studio:
 
 ## 4) Subir a Play Console
 
-1. En Play Console: **Crear app** → nombre "Bolitas", idioma español, app gratuita.
+1. En Play Console: **Crear app** → nombre "Bolos VE", idioma español, app gratuita.
 2. Completá: descripción, capturas, ícono 512×512, categoría (Finanzas), política de privacidad.
 3. **Producción → Crear nueva versión** → subí el `app-release.aab`.
 4. Completá los cuestionarios (contenido, anuncios, seguridad de datos).

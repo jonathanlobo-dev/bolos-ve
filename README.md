@@ -1,4 +1,4 @@
-# 🟡 Bolitas
+# 🟡 Bolos VE
 
 App Android para monitorear el **precio del dólar en Venezuela** (BCV, Euro y P2P/USDT) en tiempo real, con calculadoras y alertas. Construida con **Vite + TypeScript + Capacitor**.
 

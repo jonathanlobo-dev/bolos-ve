@@ -28,10 +28,11 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- AdMob App ID real de Bolitas -->
+        <!-- AdMob App ID real de Bolos VE -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-8302037284208937~7886163212" />
+            android:value="ca-app-pub-8302037284208937~7886163212"
+        />
     </application>
 
     <!-- Permissions -->

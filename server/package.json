@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Backend de Bolitas: lee el BCV (bcv.org.ve) y el P2P de Binance, y los sirve como JSON.",
+  "description": "Backend de Bolos VE: lee el BCV (bcv.org.ve) y el P2P de Binance, y los sirve como JSON.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

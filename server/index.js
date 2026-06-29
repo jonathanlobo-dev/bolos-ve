@@ -1,4 +1,4 @@
-// Backend de Bolitas
+// Backend de Bolos VE
 // Lee la tasa oficial del BCV (bcv.org.ve) y el precio P2P de Binance (USDT/VES),
 // los cachea unos minutos y los sirve como JSON con CORS abierto.
 //
@@ -43,7 +43,7 @@ async function bcvFromDolarVzla() {
 async function scrapeBCV() {
   const res = await fetch("https://www.bcv.org.ve/", {
     dispatcher: insecure,
-    headers: { "User-Agent": "Mozilla/5.0 (BolitasBot)" },
+    headers: { "User-Agent": "Mozilla/5.0 (Bolos VEBot)" },
   });
   const html = await res.text();
   const $ = cheerio.load(html);
@@ -137,7 +137,7 @@ app.get("/api/rates", async (_req, res) => {
   }
 });
 
-app.get("/", (_req, res) => res.send("Bolitas backend OK. Ver /api/rates"));
+app.get("/", (_req, res) => res.send("Bolos VE backend OK. Ver /api/rates"));
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Bolitas backend escuchando en :${port}`));
+app.listen(port, () => console.log(`Bolos VE backend escuchando en :${port}`));

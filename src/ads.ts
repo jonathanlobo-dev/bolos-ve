@@ -2,7 +2,7 @@
 //  - En el navegador (dev): se muestra un placeholder maquetado.
 //  - En Android (APK): se inicializa AdMob y se dibuja un banner real abajo.
 
-// Ad Unit ID real de Bolitas.
+// Ad Unit ID real de Bolos VE.
 const BANNER_ID = "ca-app-pub-8302037284208937/2452997428";
 
 // ⚠️ MODO PRUEBA: mientras desarrollamos lo dejamos en true (muestra anuncios de

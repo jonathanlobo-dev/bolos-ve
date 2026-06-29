@@ -1,4 +1,4 @@
-# Backend de Bolitas
+# Backend de Bolos VE
 
 Lee la tasa **oficial del BCV** (directo de `bcv.org.ve`) y el **P2P de Binance** (USDT/VES),
 y los sirve como JSON. Es lo que hace que los datos sean tan precisos como los de apps tipo Arco.
@@ -31,7 +31,7 @@ Abrí en el navegador: **http://localhost:3000/api/rates**
 Deberías ver el JSON con el BCV correcto (ej. 567.68).
 
 Para probar la app contra este backend local:
-1. Abrí Bolitas (`http://localhost:5173`).
+1. Abrí Bolos VE (`http://localhost:5173`).
 2. ⚙️ Configuración → "Servidor de datos" → escribí `http://localhost:3000` → **Guardar servidor**.
 3. La app recarga y muestra los datos del backend (BCV exacto).
 

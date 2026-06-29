@@ -22,7 +22,7 @@ function getCfg(): DailyCfg {
 }
 
 function bodyText(): string {
-  if (!latest || latest.rates.length === 0) return "Abre Bolitas para ver las tasas de hoy.";
+  if (!latest || latest.rates.length === 0) return "Abre Bolos VE para ver las tasas de hoy.";
   return latest.rates
     .map((r) => `${r.icon} ${r.title}: Bs ${fmt(r.price)}`)
     .join(" · ");
@@ -53,7 +53,7 @@ async function reschedule(): Promise<void> {
     notifications: [
       {
         id: NOTIF_ID,
-        title: "💱 Tasas de hoy — Bolitas",
+        title: "💱 Tasas de hoy — Bolos VE",
         body,
         schedule: { on: { hour: h, minute: m }, allowWhileIdle: true },
       },
@@ -89,7 +89,7 @@ async function testNow(): Promise<void> {
       notifications: [
         {
           id: 9002,
-          title: "🔔 Prueba — Bolitas",
+          title: "🔔 Prueba — Bolos VE",
           body: bodyText() || "Notificación de prueba",
           schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true },
         },

@@ -1,13 +1,13 @@
-# Ficha de Play Store — Bolitas
+# Ficha de Play Store — Bolos VE
 
 ## Título (máx. 30 caracteres)
-Bolitas: Dólar BCV y P2P
+Bolos VE: Dólar BCV y P2P
 
 ## Descripción corta (máx. 80 caracteres)
 Dólar BCV, Euro y P2P en tiempo real, con calculadoras y alertas. Rápido y simple.
 
 ## Descripción completa (máx. 4000 caracteres)
-Bolitas es la forma más rápida y sencilla de ver el precio del dólar en Venezuela y hacer tus cálculos del día a día.
+Bolos VE es la forma más rápida y sencilla de ver el precio del dólar en Venezuela y hacer tus cálculos del día a día.
 
 💱 TASAS AL INSTANTE
 • Dólar BCV oficial, Euro BCV y P2P (USDT) actualizados.
@@ -28,7 +28,7 @@ Bolitas es la forma más rápida y sencilla de ver el precio del dólar en Venez
 • Mantén presionada una tarjeta para copiar el monto.
 • Comparte las tasas del día por WhatsApp o Telegram.
 
-Bolitas funciona también sin conexión mostrando las últimas tasas guardadas.
+Bolos VE funciona también sin conexión mostrando las últimas tasas guardadas.
 
 Aviso: las tasas se muestran con fines informativos, obtenidas de fuentes públicas. No nos responsabilizamos por decisiones financieras basadas en esta información.
 
@@ -43,4 +43,4 @@ Aviso: las tasas se muestran con fines informativos, obtenidas de fuentes públi
 - **Política de privacidad:** (la URL que obtengas al hostear privacy.html)
 
 ## Textos para redes / compartir (opcional)
-"📲 Descarga Bolitas: el dólar BCV, Euro y P2P en tiempo real, con calculadora de pago móvil y alertas. ¡Gratis!"
+"📲 Descarga Bolos VE: el dólar BCV, Euro y P2P en tiempo real, con calculadora de pago móvil y alertas. ¡Gratis!"

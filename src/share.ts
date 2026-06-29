@@ -15,13 +15,13 @@ export function setShareRates(result: RatesResult): void {
 
 function buildText(): string {
   if (!latest || latest.rates.length === 0) return "";
-  const lines = ["💱 *Tasas de hoy — Bolitas*", ""];
+  const lines = ["💱 *Tasas de hoy — Bolos VE*", ""];
   for (const r of latest.rates) lines.push(`${r.icon} ${r.title}: Bs ${fmt(r.price)}`);
   const time = new Date(latest.fetchedAt || Date.now()).toLocaleString("es-VE", {
     dateStyle: "short",
     timeStyle: "short",
   });
-  lines.push("", `🕒 ${time}`, "", `📲 Descarga Bolitas: ${DOWNLOAD_URL}`);
+  lines.push("", `🕒 ${time}`, "", `📲 Descarga Bolos VE: ${DOWNLOAD_URL}`);
   return lines.join("\n");
 }
 
@@ -41,7 +41,7 @@ async function share(): Promise<void> {
   const plugin = nativeSharePlugin();
   if (plugin?.share) {
     try {
-      await plugin.share({ title: "Bolitas — Tasas de hoy", text, dialogTitle: "Compartir tasas" });
+      await plugin.share({ title: "Bolos VE — Tasas de hoy", text, dialogTitle: "Compartir tasas" });
     } catch {
       /* el usuario canceló */
     }
@@ -51,7 +51,7 @@ async function share(): Promise<void> {
   // 2) Web Share API (navegador compatible)
   try {
     if (navigator.share) {
-      await navigator.share({ title: "Bolitas — Tasas de hoy", text });
+      await navigator.share({ title: "Bolos VE — Tasas de hoy", text });
       return;
     }
   } catch {

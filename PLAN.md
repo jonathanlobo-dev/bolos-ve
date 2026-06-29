@@ -1,4 +1,4 @@
-# Bolitas — App Android (monitor de dólar Venezuela + calculadora + alertas)
+# Bolos VE — App Android (monitor de dólar Venezuela + calculadora + alertas)
 
 > Stack: **Vite + TypeScript (vanilla) + Capacitor** → APK Android.
 
