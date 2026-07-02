@@ -1,4 +1,5 @@
-// Convierte assets/logo.svg en los PNG fuente que usa @capacitor/assets.
+// Genera los PNG fuente que usa @capacitor/assets a partir de
+// assets/logo-clean.png (moneda con transparencia real; ver tools/clean-logo.mjs).
 // Uso:  npm run logo
 import sharp from "sharp";
 import { readFileSync } from "node:fs";
@@ -6,16 +7,16 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const svg = readFileSync(join(root, "assets", "logo.svg"));
+const src = join(root, "assets", "logo-clean.png");
 
 // logo.png: la moneda con fondo transparente (1024x1024)
-await sharp(svg, { density: 384 })
+await sharp(src)
   .resize(1024, 1024, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
   .png()
   .toFile(join(root, "assets", "logo.png"));
 
 // logo-dark.png: igual (mismo logo sirve para claro y oscuro)
-await sharp(svg, { density: 384 })
+await sharp(src)
   .resize(1024, 1024, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
   .png()
   .toFile(join(root, "assets", "logo-dark.png"));
@@ -23,7 +24,7 @@ await sharp(svg, { density: 384 })
 // --- Materiales para Play Store ---
 
 // Ícono 512×512 (Play exige SIN transparencia): moneda centrada sobre fondo oscuro.
-const coin = await sharp(svg, { density: 384 })
+const coin = await sharp(src)
   .resize(430, 430, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
   .png()
   .toBuffer();
