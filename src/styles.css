@@ -158,6 +158,19 @@ body {
   gap: 8px;
   margin: 10px 0 2px;
 }
+.gap-strip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 8px 14px;
+  margin-top: 10px;
+}
+.gap-strip b {
+  color: var(--gold);
+}
 .chip {
   flex: 1;
   background: var(--surface);
@@ -244,6 +257,31 @@ body {
 }
 .rate-head {
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.spark {
+  width: 42px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+.rate-title {
+  white-space: nowrap;
+}
+.spark polyline {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.spark.up polyline {
+  stroke: var(--up);
+}
+.spark.down polyline {
+  stroke: var(--down);
 }
 .rate-title {
   color: var(--text-dim);

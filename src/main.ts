@@ -14,7 +14,9 @@ import { initOnboarding } from "./onboarding";
 import { initDaily, setDailyRates } from "./daily";
 
 const REFRESH_MS = 5 * 60 * 1000; // refresco automático cada 5 min
+const MIN_REFRESH_MS = 60 * 1000; // al volver a la app, no repetir si hay datos de hace <1 min
 let refreshing = false;
+let lastFetchAt = 0;
 
 function setupTabs(): void {
   const tabs = document.querySelectorAll<HTMLButtonElement>(".tab");
@@ -36,6 +38,7 @@ async function refresh(): Promise<void> {
   btn?.classList.add("spin");
   try {
     const result = await getRates();
+    if (!result.stale) lastFetchAt = Date.now();
     renderHome(result);
     setCalcRates(result);
     setShareRates(result);
@@ -134,7 +137,10 @@ function init(): void {
   setInterval(refresh, REFRESH_MS);
 
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") refresh();
+    // al volver a la app, refrescar solo si los datos ya tienen más de 1 min
+    if (document.visibilityState === "visible" && Date.now() - lastFetchAt > MIN_REFRESH_MS) {
+      refresh();
+    }
   });
 }
 

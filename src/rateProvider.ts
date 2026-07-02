@@ -434,6 +434,32 @@ function applyLiveChange(rates: Rate[]): void {
   save(HISTORY_KEY, hist);
 }
 
+// --- Historial diario (para el mini-gráfico de 7 días en las tarjetas) ---
+// Guardamos un precio por día y por tasa; se poda a los últimos 8 días.
+const DAILY_KEY = "bolitas.rateDaily";
+
+function recordDaily(rates: Rate[]): void {
+  const day = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const hist = load<Record<string, Record<string, number>>>(DAILY_KEY, {});
+  for (const r of rates) {
+    if (!(r.price > 0)) continue;
+    const h = (hist[r.id] ??= {});
+    h[day] = r.price;
+    for (const k of Object.keys(h).sort().slice(0, -8)) delete h[k];
+  }
+  save(DAILY_KEY, hist);
+}
+
+/** Precios diarios (ordenados, hasta 8 días) de una tasa, para dibujar el sparkline. */
+export function dailyHistory(id: string): number[] {
+  const hist = load<Record<string, Record<string, number>>>(DAILY_KEY, {});
+  const h = hist[id];
+  if (!h) return [];
+  return Object.keys(h)
+    .sort()
+    .map((k) => h[k]);
+}
+
 /**
  * Obtiene todas las tasas combinando fuentes y rellenando huecos.
  * Orden por tasa: pyDolarVenezuela → DolarApi → (euro) estimado. Luego caché → ejemplo.
@@ -513,6 +539,7 @@ export async function getRates(): Promise<RatesResult> {
       }
     }
     applyLiveChange(rates); // completa el % de las tasas que no lo traen (ej. P2P)
+    recordDaily(rates); // snapshot diario para el mini-gráfico de 7 días
     const source = [...sources].join(" + ");
     console.info(`[rateProvider] OK (${source}): ${rates.length} tasas`);
     const result: RatesResult = { rates, fetchedAt: Date.now(), source, stale: false };

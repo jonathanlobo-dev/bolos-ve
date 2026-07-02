@@ -2,10 +2,11 @@
 // El monto se ingresa estilo calculadora: arranca en 1, y al escribir se llena
 // de derecha a izquierda como centavos (0,01 → 0,15 → 1,50 → 15,00).
 
-import type { Rate, RatesResult } from "./rateProvider";
+import { calcGap, dailyHistory, type Rate, type RatesResult } from "./rateProvider";
 import { getConfig, onConfigChange, visibleOrderedIds } from "./config";
 import { attachAmountInput, type AmountHandle } from "./amountInput";
-import { buzz, copyText, fmt, toast } from "./util";
+import { load, save } from "./storage";
+import { attachHold, attachHoldToCopy, fmt } from "./util";
 
 type Direction = "toBs" | "fromBs"; // moneda→Bs  |  Bs→moneda
 
@@ -32,6 +33,21 @@ function convertedText(rate: Rate): string {
     : `${rate.symbol} ${fmt(convertedValue(rate))}`;
 }
 
+// Mini-gráfico de los últimos días (necesita al menos 2 snapshots diarios).
+function sparkSvg(points: number[]): string {
+  if (points.length < 2) return "";
+  const w = 64;
+  const h = 20;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const span = max - min || 1;
+  const pts = points
+    .map((p, i) => `${((i / (points.length - 1)) * w).toFixed(1)},${(h - 2 - ((p - min) / span) * (h - 4)).toFixed(1)}`)
+    .join(" ");
+  const trend = points[points.length - 1] >= points[0] ? "up" : "down";
+  return `<svg class="spark ${trend}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" /></svg>`;
+}
+
 function cardHtml(rate: Rate): string {
   const up = rate.percent > 0;
   const down = rate.percent < 0;
@@ -47,6 +63,7 @@ function cardHtml(rate: Rate): string {
     <div class="rate-card" data-id="${rate.id}">
       <div class="rate-head">
         <span class="rate-title">${rate.icon} ${rate.title}</span>
+        ${sparkSvg(dailyHistory(rate.id))}
       </div>
       <div class="rate-converted">${convertedText(rate)}</div>
       <div class="rate-unit">${unit}</div>
@@ -65,38 +82,33 @@ function recompute(): void {
   });
 }
 
-// ---- Copiar el monto al mantener presionada una tarjeta ----
+// ---- Mantener presionado: la tarjeta copia el monto (pegable en el banco);
+// la línea "1 $ = Bs …" copia la tasa formateada para compartir por WhatsApp. ----
 function attachLongPressCopy(container: HTMLElement): void {
   container.querySelectorAll<HTMLElement>(".rate-card").forEach((card) => {
-    let timer: number | undefined;
-    let sx = 0;
-    let sy = 0;
-    const start = (e: PointerEvent) => {
-      sx = e.clientX;
-      sy = e.clientY;
-      timer = window.setTimeout(() => {
-        const id = card.dataset.id;
-        const rate = current?.rates.find((r) => r.id === id);
-        if (!rate) return;
-        const plain = convertedValue(rate).toFixed(2); // ej "563.29" (pegable en banco)
-        copyText(plain);
-        buzz(30);
-        card.classList.add("copied");
-        setTimeout(() => card.classList.remove("copied"), 350);
-        toast(`Copiado: ${convertedText(rate)}`);
-      }, 450);
-    };
-    const cancel = () => {
-      if (timer) clearTimeout(timer);
-    };
-    const move = (e: PointerEvent) => {
-      if (Math.hypot(e.clientX - sx, e.clientY - sy) > 10) cancel();
-    };
-    card.addEventListener("pointerdown", start);
-    card.addEventListener("pointerup", cancel);
-    card.addEventListener("pointercancel", cancel);
-    card.addEventListener("pointermove", move);
-    card.addEventListener("pointerleave", cancel);
+    const rateOf = () => current?.rates.find((r) => r.id === card.dataset.id);
+    attachHoldToCopy(
+      card,
+      () => {
+        const rate = rateOf();
+        return rate ? convertedValue(rate).toFixed(2) : null; // ej "563.29"
+      },
+      () => {
+        const rate = rateOf();
+        return `Copiado: ${rate ? convertedText(rate) : ""}`;
+      },
+    );
+    const unitEl = card.querySelector<HTMLElement>(".rate-unit");
+    if (unitEl)
+      attachHoldToCopy(
+        unitEl,
+        () => {
+          const rate = rateOf();
+          return rate ? `${rate.icon} ${rate.title}: Bs ${fmt(rate.price)}` : null;
+        },
+        (t) => `Copiado: ${t}`,
+        { stopPropagation: true },
+      );
   });
 }
 
@@ -119,9 +131,22 @@ function renderCards(): void {
   attachLongPressCopy(container);
 }
 
+function renderGap(result: RatesResult): void {
+  const strip = document.getElementById("gapStrip");
+  if (!strip) return;
+  const gap = calcGap(result);
+  if (gap == null) {
+    strip.classList.add("hidden");
+    return;
+  }
+  strip.classList.remove("hidden");
+  strip.innerHTML = `📊 Brecha BCV ↔ P2P: <b>${fmt(gap)}%</b>`;
+}
+
 export function renderHome(result: RatesResult): void {
   current = result;
   renderCards();
+  renderGap(result);
 
   const updated = document.getElementById("homeUpdated");
   if (updated) {
@@ -179,11 +204,33 @@ export function initHome(): void {
     });
   });
 
-  // atajos de montos rápidos
-  document.querySelectorAll<HTMLButtonElement>(".chip[data-amt]").forEach((chip) => {
+  // atajos de montos rápidos: tocar aplica el monto; mantener presionado lo edita
+  const CHIPS_KEY = "bolitas.chips";
+  const chips = [...document.querySelectorAll<HTMLButtonElement>(".chip[data-amt]")];
+  const savedChips = load<number[]>(CHIPS_KEY, []);
+  chips.forEach((chip, i) => {
+    if (savedChips[i] > 0) {
+      chip.dataset.amt = String(savedChips[i]);
+      chip.textContent = fmt(savedChips[i]).replace(/,00$/, "");
+    }
     chip.addEventListener("click", () => {
+      if (chip.dataset.held) {
+        delete chip.dataset.held; // el click posterior a un hold no aplica el monto
+        return;
+      }
       const v = parseFloat(chip.dataset.amt || "0");
       if (v > 0) amountHandle?.setValue(v);
+    });
+    attachHold(chip, () => {
+      const cur = chip.dataset.amt || "";
+      const raw = window.prompt("Nuevo valor para este botón:", cur);
+      if (raw == null) return;
+      const v = parseFloat(raw.replace(",", "."));
+      if (!(v > 0)) return;
+      chip.dataset.amt = String(v);
+      chip.textContent = fmt(v).replace(/,00$/, "");
+      const vals = chips.map((c) => parseFloat(c.dataset.amt || "0"));
+      save(CHIPS_KEY, vals);
     });
   });
 

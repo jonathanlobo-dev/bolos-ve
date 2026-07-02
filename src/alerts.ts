@@ -42,13 +42,16 @@ function getLN(): any | null {
   return cap.Plugins?.LocalNotifications ?? null;
 }
 
+// id único para cada notificación (evita colisiones si se disparan en el mismo ms)
+let notifSeq = Math.floor(Math.random() * 1_000_000);
+
 async function notify(title: string, body: string): Promise<void> {
   const LN = getLN();
   if (LN) {
     try {
       const perm = await LN.checkPermissions();
       if (perm.display !== "granted") await LN.requestPermissions();
-      await LN.schedule({ notifications: [{ id: Date.now() % 100000, title, body }] });
+      await LN.schedule({ notifications: [{ id: (notifSeq++ % 2_000_000_000) + 1, title, body }] });
       return;
     } catch {
       /* cae al fallback web */
