@@ -133,7 +133,9 @@ app.get("/api/rates", async (_req, res) => {
     }
     res.json(cache.data);
   } catch (e) {
-    res.status(500).json({ error: String(e) });
+    // El detalle interno va al log, no al cliente (evita filtrar rutas/stack)
+    console.error("rates falló:", e);
+    res.status(500).json({ error: "No se pudieron obtener las tasas. Intenta de nuevo." });
   }
 });
 
