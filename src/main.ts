@@ -12,6 +12,7 @@ import { initShare, setShareRates } from "./share";
 import { applyTheme, watchSystemTheme } from "./theme";
 import { initOnboarding } from "./onboarding";
 import { initDaily, setDailyRates } from "./daily";
+import { initBackButton } from "./back";
 
 const REFRESH_MS = 5 * 60 * 1000; // refresco automático cada 5 min
 const MIN_REFRESH_MS = 60 * 1000; // al volver a la app, no repetir si hay datos de hace <1 min
@@ -122,6 +123,7 @@ function init(): void {
   initAds();
   initPullToRefresh();
   initOnboarding();
+  initBackButton();
 
   document.getElementById("refreshBtn")?.addEventListener("click", refresh);
 
