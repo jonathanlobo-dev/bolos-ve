@@ -24,6 +24,20 @@ export function applyTheme(theme?: Theme): void {
   // color de la barra de estado del navegador/WebView
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute("content", resolved === "dark" ? "#0f0f0f" : "#f5f5f5");
+  syncSystemBars(resolved);
+}
+
+// Barras del sistema Android (navegación y estado) del color del tema,
+// como hace WhatsApp. Vía puente nativo; en el navegador no hace nada.
+function syncSystemBars(resolved: "light" | "dark"): void {
+  try {
+    const cap = (window as any).Capacitor;
+    if (!cap?.isNativePlatform?.()) return;
+    const color = resolved === "dark" ? "#121212" : "#f5f5f5";
+    cap.Plugins?.NavigationBar?.setColor?.({ color, darkButtons: resolved === "light" });
+  } catch {
+    /* plugin no disponible */
+  }
 }
 
 // Si está en "sistema", reaccionar a cambios del SO.

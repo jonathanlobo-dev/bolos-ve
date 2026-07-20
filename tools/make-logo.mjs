@@ -41,10 +41,24 @@ await sharp(glow)
   .png()
   .toFile(join(root, "assets", "playstore-icon-512.png"));
 
-// Gráfico destacado 1024×500
-const fg = readFileSync(join(root, "assets", "feature-graphic.svg"));
-await sharp(fg, { density: 200 })
-  .resize(1024, 500)
+// Gráfico destacado 1024×500: moneda real a la izquierda + textos
+const fgCoin = await sharp(trimmed)
+  .resize(340, 340, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  .png()
+  .toBuffer();
+const fgBg = Buffer.from(
+  `<svg width="1024" height="500" xmlns="http://www.w3.org/2000/svg">` +
+    `<defs><radialGradient id="g" cx="24%" cy="50%" r="55%">` +
+    `<stop offset="0%" stop-color="#332a00"/><stop offset="100%" stop-color="#121212"/>` +
+    `</radialGradient></defs>` +
+    `<rect width="1024" height="500" fill="url(#g)"/>` +
+    `<text x="450" y="215" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="800" fill="#FFC400">Bolos VE</text>` +
+    `<text x="452" y="280" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="600" fill="#F5F5F5">Tu app de cambio</text>` +
+    `<text x="452" y="335" font-family="Arial, Helvetica, sans-serif" font-size="30" fill="#9E9E9E">Dólar BCV · Euro · P2P en vivo</text>` +
+    `</svg>`,
+);
+await sharp(fgBg)
+  .composite([{ input: fgCoin, left: 70, top: 80 }])
   .png()
   .toFile(join(root, "assets", "feature-graphic-1024x500.png"));
 
