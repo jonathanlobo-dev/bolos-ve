@@ -126,12 +126,16 @@ function init(): void {
   initOnboarding();
   initBackButton();
 
-  // gesto oculto (desarrollador): mantener el logo ~3s alterna la publicidad
+  // gesto oculto (SOLO desarrollador): mantener el logo ~3s pide una clave;
+  // solo con la clave correcta se alterna la publicidad en este dispositivo.
+  const ADMIN_PIN = "241093";
   const brand = document.querySelector<HTMLElement>(".brand");
   if (brand)
     attachHold(
       brand,
       async () => {
+        const pin = window.prompt("Clave:");
+        if (pin !== ADMIN_PIN) return; // clave incorrecta o cancelado: no pasa nada
         const off = await toggleAds();
         buzz(60);
         toast(off ? "🔕 Publicidad desactivada en este dispositivo" : "🔔 Publicidad activada");
