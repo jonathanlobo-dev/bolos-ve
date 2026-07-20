@@ -5,10 +5,12 @@
 // Ad Unit ID real de Bolos VE.
 const BANNER_ID = "ca-app-pub-8302037284208937/2452997428";
 
-// ⚠️ MODO PRUEBA: mientras desarrollamos lo dejamos en true (muestra anuncios de
-// test seguros, sin riesgo de baneo). Antes de PUBLICAR, cambiar a false para
-// que se muestren anuncios reales.
-const TESTING = true;
+// MODO PRUEBA: en compilaciones de desarrollo (`npm run dev`) se piden anuncios
+// de test, que son seguros. En el build de producción (el AAB que va a Play) se
+// piden anuncios reales.
+// ⚠️ NUNCA hagas clic en tus propios anuncios reales: AdMob lo detecta como
+// fraude de clics y suspende la cuenta.
+const TESTING = import.meta.env.DEV;
 
 let bannerShown = false; // true cuando el banner nativo está activo
 
