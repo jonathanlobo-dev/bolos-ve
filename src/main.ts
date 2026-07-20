@@ -2,7 +2,8 @@
 
 import "./styles.css";
 import { getCachedRates, getRates } from "./rateProvider";
-import { initAds } from "./ads";
+import { initAds, toggleAds } from "./ads";
+import { attachHold, buzz, toast } from "./util";
 import { initConfig } from "./config";
 import { initHome, renderHome } from "./home";
 import { initPagoMovil } from "./pagomovil";
@@ -124,6 +125,19 @@ function init(): void {
   initPullToRefresh();
   initOnboarding();
   initBackButton();
+
+  // gesto oculto (desarrollador): mantener el logo ~3s alterna la publicidad
+  const brand = document.querySelector<HTMLElement>(".brand");
+  if (brand)
+    attachHold(
+      brand,
+      async () => {
+        const off = await toggleAds();
+        buzz(60);
+        toast(off ? "🔕 Publicidad desactivada en este dispositivo" : "🔔 Publicidad activada");
+      },
+      { ms: 3000 },
+    );
 
   document.getElementById("refreshBtn")?.addEventListener("click", refresh);
 

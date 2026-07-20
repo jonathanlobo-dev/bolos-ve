@@ -12,6 +12,15 @@ const BANNER_ID = "ca-app-pub-8302037284208937/2452997428";
 // fraude de clics y suspende la cuenta.
 const TESTING = import.meta.env.DEV;
 
+// MODO ADMIN (sin publicidad): mantener presionado el logo del header ~3s
+// activa/desactiva los anuncios en ESTE dispositivo. Para uso del desarrollador:
+// así la app instalada desde Play no muestra anuncios reales que no debe clicar.
+const ADS_OFF_KEY = "bolitas.adsOff";
+
+export function adsDisabled(): boolean {
+  return localStorage.getItem(ADS_OFF_KEY) === "1";
+}
+
 let bannerShown = false; // true cuando el banner nativo está activo
 
 async function admobModule() {
@@ -22,6 +31,10 @@ async function admobModule() {
 
 export async function initAds(): Promise<void> {
   const placeholder = document.getElementById("adBanner");
+  if (adsDisabled()) {
+    if (placeholder) placeholder.style.display = "none";
+    return;
+  }
   try {
     const mod = await admobModule();
     if (!mod) return; // navegador: queda el placeholder web
@@ -60,4 +73,27 @@ export async function showAdBanner(): Promise<void> {
   } catch {
     /* sin efecto en web */
   }
+}
+
+/** Activa/desactiva la publicidad en este dispositivo. Devuelve true si quedó SIN anuncios. */
+export async function toggleAds(): Promise<boolean> {
+  const off = !adsDisabled();
+  localStorage.setItem(ADS_OFF_KEY, off ? "1" : "0");
+  if (off) {
+    // quitar el banner ya mismo (nativo y placeholder web)
+    try {
+      const mod = await admobModule();
+      await mod?.AdMob.removeBanner();
+    } catch {
+      /* sin efecto en web */
+    }
+    bannerShown = false;
+    const placeholder = document.getElementById("adBanner");
+    if (placeholder) placeholder.style.display = "none";
+  } else {
+    await initAds();
+    const placeholder = document.getElementById("adBanner");
+    if (placeholder && !bannerShown) placeholder.style.display = "";
+  }
+  return off;
 }
