@@ -2,8 +2,8 @@
 
 import "./styles.css";
 import { getCachedRates, getRates } from "./rateProvider";
-import { initAds, toggleAds } from "./ads";
-import { attachHold, buzz, toast } from "./util";
+import { getDeviceId, initAds } from "./ads";
+import { attachHold, buzz, copyText, toast } from "./util";
 import { initConfig } from "./config";
 import { initHome, renderHome } from "./home";
 import { initPagoMovil } from "./pagomovil";
@@ -126,19 +126,19 @@ function init(): void {
   initOnboarding();
   initBackButton();
 
-  // gesto oculto (SOLO desarrollador): mantener el logo ~3s pide una clave;
-  // solo con la clave correcta se alterna la publicidad en este dispositivo.
-  const ADMIN_PIN = "241093";
+  // gesto oculto: mantener el logo ~3s muestra y copia el ID del dispositivo.
+  // Sirve para agregar un dispositivo a ADMIN_DEVICE_IDS (ads.ts) — a quien no
+  // sepa qué es, solo le muestra un código sin contexto.
   const brand = document.querySelector<HTMLElement>(".brand");
   if (brand)
     attachHold(
       brand,
       async () => {
-        const pin = window.prompt("Clave:");
-        if (pin !== ADMIN_PIN) return; // clave incorrecta o cancelado: no pasa nada
-        const off = await toggleAds();
+        const id = await getDeviceId();
+        if (!id) return;
+        copyText(id);
         buzz(60);
-        toast(off ? "🔕 Publicidad desactivada en este dispositivo" : "🔔 Publicidad activada");
+        toast(`ID: ${id}`);
       },
       { ms: 3000 },
     );

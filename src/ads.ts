@@ -12,13 +12,28 @@ const BANNER_ID = "ca-app-pub-8302037284208937/2452997428";
 // fraude de clics y suspende la cuenta.
 const TESTING = import.meta.env.DEV;
 
-// MODO ADMIN (sin publicidad): mantener presionado el logo del header ~3s
-// activa/desactiva los anuncios en ESTE dispositivo. Para uso del desarrollador:
-// así la app instalada desde Play no muestra anuncios reales que no debe clicar.
-const ADS_OFF_KEY = "bolitas.adsOff";
+// DISPOSITIVOS DEL DESARROLLADOR: en estos IDs la app NO muestra publicidad,
+// automáticamente y sin gestos. Para conocer el ID de un dispositivo:
+// mantener presionado el logo del header ~3s (lo muestra y lo copia).
+const ADMIN_DEVICE_IDS: string[] = [
+  // "xxxxxxxxxxxxxxxx", // POCO F8 Pro de Jonathan
+];
 
-export function adsDisabled(): boolean {
-  return localStorage.getItem(ADS_OFF_KEY) === "1";
+// ID del dispositivo vía puente nativo (Device.getId → identifier).
+export async function getDeviceId(): Promise<string> {
+  try {
+    const cap = (window as any).Capacitor;
+    if (!cap?.isNativePlatform?.()) return "web";
+    const res = await cap.Plugins?.Device?.getId?.();
+    return String(res?.identifier ?? "");
+  } catch {
+    return "";
+  }
+}
+
+export async function adsDisabled(): Promise<boolean> {
+  const id = await getDeviceId();
+  return !!id && ADMIN_DEVICE_IDS.includes(id);
 }
 
 let bannerShown = false; // true cuando el banner nativo está activo
@@ -31,7 +46,7 @@ async function admobModule() {
 
 export async function initAds(): Promise<void> {
   const placeholder = document.getElementById("adBanner");
-  if (adsDisabled()) {
+  if (await adsDisabled()) {
     if (placeholder) placeholder.style.display = "none";
     return;
   }
@@ -75,25 +90,3 @@ export async function showAdBanner(): Promise<void> {
   }
 }
 
-/** Activa/desactiva la publicidad en este dispositivo. Devuelve true si quedó SIN anuncios. */
-export async function toggleAds(): Promise<boolean> {
-  const off = !adsDisabled();
-  localStorage.setItem(ADS_OFF_KEY, off ? "1" : "0");
-  if (off) {
-    // quitar el banner ya mismo (nativo y placeholder web)
-    try {
-      const mod = await admobModule();
-      await mod?.AdMob.removeBanner();
-    } catch {
-      /* sin efecto en web */
-    }
-    bannerShown = false;
-    const placeholder = document.getElementById("adBanner");
-    if (placeholder) placeholder.style.display = "none";
-  } else {
-    await initAds();
-    const placeholder = document.getElementById("adBanner");
-    if (placeholder && !bannerShown) placeholder.style.display = "";
-  }
-  return off;
-}
