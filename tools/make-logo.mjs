@@ -23,12 +23,20 @@ await sharp(src)
 
 // --- Materiales para Play Store ---
 
-// Ícono 512×512 (Play exige SIN transparencia): moneda centrada sobre fondo oscuro.
-const coin = await sharp(src)
-  .resize(430, 430, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+// Ícono 512×512 (Play exige SIN transparencia): moneda recortada (sin márgenes
+// internos) llenando ~88% del lienzo, sobre fondo oscuro con resplandor dorado.
+const trimmed = await sharp(src).trim().png().toBuffer();
+const coin = await sharp(trimmed)
+  .resize(450, 450, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
   .png()
   .toBuffer();
-await sharp({ create: { width: 512, height: 512, channels: 4, background: "#121212" } })
+const glow = Buffer.from(
+  `<svg width="512" height="512"><defs><radialGradient id="g" cx="50%" cy="46%" r="62%">` +
+    `<stop offset="0%" stop-color="#3a2f00"/><stop offset="55%" stop-color="#1d1a0a"/>` +
+    `<stop offset="100%" stop-color="#121212"/></radialGradient></defs>` +
+    `<rect width="512" height="512" fill="url(#g)"/></svg>`,
+);
+await sharp(glow)
   .composite([{ input: coin, gravity: "centre" }])
   .png()
   .toFile(join(root, "assets", "playstore-icon-512.png"));
