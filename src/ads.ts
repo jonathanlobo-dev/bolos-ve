@@ -16,7 +16,7 @@ const TESTING = import.meta.env.DEV;
 // automáticamente y sin gestos. Para conocer el ID de un dispositivo:
 // mantener presionado el logo del header ~3s (lo muestra y lo copia).
 const ADMIN_DEVICE_IDS: string[] = [
-  // "xxxxxxxxxxxxxxxx", // POCO F8 Pro de Jonathan
+  "6083d16526271b5f", // POCO F8 Pro de Jonathan
 ];
 
 // ID del dispositivo vía puente nativo (Device.getId → identifier).
