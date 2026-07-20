@@ -7,7 +7,6 @@ import { attachHoldToCopy, fmt } from "./util";
 
 let rates: RatesResult | null = null;
 let convBest = 0; // costo (en $) de la opción más conveniente, para copiar
-let ganProfit = 0; // ganancia en Bs de la calculadora de USDT, para copiar
 
 function numVal(id: string): number {
   const el = document.getElementById(id) as HTMLInputElement | null;
@@ -93,53 +92,11 @@ function computeConviene(): void {
     }</b> · ahorras $ ${fmt(ahorro)}</p>`;
 }
 
-// ---------- Ganancia USDT ----------
-// Compro X USDT pagando Bs a la tasa A; los vendo a la tasa B → ganancia en Bs y %.
-function computeGanancia(): void {
-  const box = document.getElementById("ganResult");
-  if (!box) return;
-  const qty = readAmount("ganQty");
-  const buy = numVal("ganBuy");
-  const sell = numVal("ganSell");
-
-  if (!(qty > 0) || !(buy > 0) || !(sell > 0)) {
-    box.innerHTML = `<p class="pm-detail">Escribe la cantidad de USDT, la tasa de compra y la de venta.</p>`;
-    ganProfit = 0;
-    return;
-  }
-  const invested = qty * buy;
-  const received = qty * sell;
-  const profit = received - invested;
-  const pct = ((sell - buy) / buy) * 100;
-  ganProfit = profit;
-  const gain = profit >= 0;
-  box.innerHTML = `
-    <div class="conv-opt">
-      <span>Inviertes (${fmt(qty)} × ${fmt(buy)})</span>
-      <b>Bs ${fmt(invested)}</b>
-    </div>
-    <div class="conv-opt">
-      <span>Recibes (${fmt(qty)} × ${fmt(sell)})</span>
-      <b>Bs ${fmt(received)}</b>
-    </div>
-    <p class="conv-verdict">${gain ? "Ganas" : "Pierdes"} <b>Bs ${fmt(Math.abs(profit))}</b> (${
-      gain ? "+" : "−"
-    }${fmt(Math.abs(pct))}%)</p>`;
-}
-
-// Sugiere el P2P actual como tasa de venta (solo como placeholder, no pisa lo escrito).
-function fillGanPlaceholders(): void {
-  const sellEl = document.getElementById("ganSell") as HTMLInputElement | null;
-  const p2p = rates ? rateById(rates, "binance_usd") : undefined;
-  if (sellEl && p2p) sellEl.placeholder = `Ej: ${p2p.price.toFixed(2)} (P2P actual)`;
-}
-
 // ---------- Inicialización ----------
 export function setCalcRates(result: RatesResult): void {
   rates = result;
   fillConvRate();
   computeConviene();
-  fillGanPlaceholders();
 }
 
 export function initCalculators(): void {
@@ -169,20 +126,6 @@ export function initCalculators(): void {
     updateCustomVisibility();
     computeConviene();
   });
-
-  // Ganancia USDT
-  const ganQtyEl = document.getElementById("ganQty") as HTMLInputElement | null;
-  if (ganQtyEl) attachAmountInput(ganQtyEl, { onChange: computeGanancia });
-  document.getElementById("ganBuy")?.addEventListener("input", computeGanancia);
-  document.getElementById("ganSell")?.addEventListener("input", computeGanancia);
-  const ganBox = document.getElementById("ganResult");
-  if (ganBox)
-    attachHoldToCopy(
-      ganBox,
-      () => (ganProfit !== 0 ? ganProfit.toFixed(2) : null),
-      (t) => `Copiado: Bs ${t}`,
-    );
-  computeGanancia();
 
   showHub();
 }

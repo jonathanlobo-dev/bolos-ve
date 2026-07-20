@@ -60,11 +60,6 @@
             <span class="calc-tile-name">¿Me conviene?</span>
             <span class="calc-tile-desc">Pagar en Bs o en $</span>
           </button>
-          <button class="calc-tile" data-panel="ganancia">
-            <span class="calc-tile-ico">📈</span>
-            <span class="calc-tile-name">Ganancia USDT</span>
-            <span class="calc-tile-desc">Compro a una tasa, vendo a otra</span>
-          </button>
         </div>
 
         <!-- Panel: Pago Móvil -->
@@ -105,22 +100,6 @@
             <select id="convRate" class="input"></select>
             <input id="convCustomRate" class="input hidden" type="number" inputmode="decimal" placeholder="Tu tasa: Bs por 1 $ (ej: 760)" />
             <div id="convResult" class="conv-result"></div>
-          </div>
-        </div>
-
-        <!-- Panel: Ganancia USDT -->
-        <div class="calc-panel hidden" data-panel="ganancia">
-          <button class="calc-back">← Calculadoras</button>
-          <h2 class="view-title">📈 Ganancia USDT</h2>
-          <p class="view-intro">Compras USDT pagando bolívares a una tasa y los vendes a otra (P2P). Te decimos cuánto ganas o pierdes.</p>
-          <div class="card">
-            <label class="field-label">Cantidad de USDT</label>
-            <input id="ganQty" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="0,00" />
-            <label class="field-label">Tasa de compra (Bs por 1 USDT)</label>
-            <input id="ganBuy" class="input" type="number" inputmode="decimal" placeholder="Ej: 740" />
-            <label class="field-label">Tasa de venta (Bs por 1 USDT)</label>
-            <input id="ganSell" class="input" type="number" inputmode="decimal" placeholder="Ej: 760" />
-            <div id="ganResult" class="conv-result"></div>
           </div>
         </div>
       </section>
