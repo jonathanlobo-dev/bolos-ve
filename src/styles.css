@@ -171,6 +171,21 @@ body {
 .gap-strip b {
   color: var(--gold);
 }
+/* ¿Me conviene?: campos gemelos Bs ↔ $ al BCV */
+.conv-bs-row {
+  display: flex;
+  gap: 10px;
+}
+.conv-bs-col {
+  flex: 1;
+  min-width: 0;
+}
+.conv-bs-tag {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  margin-bottom: 3px;
+}
 .chip {
   flex: 1;
   background: var(--surface);
@@ -815,12 +830,14 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
 }
-/* Nativo: el banner real de AdMob flota anclado abajo; este div solo reserva
-   el hueco (la altura la ajusta ads.ts con la altura real del banner). */
+/* Nativo: el banner real de AdMob flota anclado abajo (sobre la barra de
+   navegación del sistema); este div solo reserva el hueco: alto del banner
+   (50dp fijo) + el safe-area inferior. */
 .ad-banner.spacer {
   visibility: hidden;
   border: 0;
   background: transparent;
+  height: calc(50px + env(safe-area-inset-bottom, 0px));
   padding-bottom: 0;
 }
 /* Sin publicidad (dispositivo admin o sin anuncio): solo el safe-area. */

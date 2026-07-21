@@ -45,13 +45,26 @@ async function admobModule() {
 }
 
 // El div #adBanner (debajo de la barra de pestañas) reserva el hueco del
-// banner nativo. "spacer" = hueco del alto del banner; "gone" = sin publicidad.
-function setSpacer(mode: "spacer" | "gone", heightPx?: number): void {
+// banner nativo. "spacer" = hueco del banner (50dp + safe-area, en CSS);
+// "gone" = sin publicidad (solo el safe-area).
+function setSpacer(mode: "spacer" | "gone"): void {
   const el = document.getElementById("adBanner");
   if (!el) return;
   el.classList.remove("spacer", "gone");
   el.classList.add(mode);
-  el.style.height = mode === "spacer" && heightPx ? `${heightPx}px` : "";
+}
+
+// Alto de la barra de navegación del sistema (safe-area inferior) en px CSS ≈ dp.
+// En Android 15 (edge-to-edge) la ventana llega hasta abajo del todo y el banner
+// debe subirse exactamente esto para no tapar los botones/gesto del sistema.
+function safeAreaBottom(): number {
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:fixed;bottom:0;width:0;height:env(safe-area-inset-bottom,0px);visibility:hidden;";
+  document.body.appendChild(probe);
+  const h = Math.round(probe.getBoundingClientRect().height);
+  probe.remove();
+  return h;
 }
 
 export async function initAds(): Promise<void> {
@@ -65,21 +78,16 @@ export async function initAds(): Promise<void> {
     const { AdMob, BannerAdSize, BannerAdPosition } = mod;
     await AdMob.initialize({});
 
-    // El hueco sigue la altura REAL del banner: así nunca tapa la barra de
-    // pestañas (varía por dispositivo) y se colapsa si no llega anuncio.
-    AdMob.addListener("bannerAdSizeChanged" as any, (size: { width: number; height: number }) => {
-      const h = Math.round((size?.height ?? 0) / (window.devicePixelRatio || 1));
-      if (h > 0) setSpacer("spacer", h);
-      else setSpacer("gone");
-    });
+    // Si no llega anuncio, el hueco se colapsa para no dejar espacio muerto.
     AdMob.addListener("bannerAdFailedToLoad" as any, () => setSpacer("gone"));
+    AdMob.addListener("bannerAdLoaded" as any, () => setSpacer("spacer"));
 
-    setSpacer("spacer", 50); // reserva provisional mientras carga (banner = 50dp)
+    setSpacer("spacer"); // reserva el hueco mientras carga (banner fijo de 50dp)
     await AdMob.showBanner({
       adId: BANNER_ID,
       adSize: BannerAdSize.BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
-      margin: 0, // anclado al borde inferior; el hueco lo pone el spacer
+      margin: safeAreaBottom(), // sobre la barra de navegación del sistema
       isTesting: TESTING, // true = anuncios de prueba (seguros mientras desarrollamos)
     });
     bannerShown = true;

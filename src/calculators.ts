@@ -2,7 +2,7 @@
 // (La lógica de Pago Móvil vive en pagomovil.ts; aquí va el Comparador.)
 
 import { rateById, type Rate, type RatesResult } from "./rateProvider";
-import { attachAmountInput, readAmount } from "./amountInput";
+import { attachAmountInput, readAmount, type AmountHandle } from "./amountInput";
 import { attachHoldToCopy, fmt } from "./util";
 
 let rates: RatesResult | null = null;
@@ -110,8 +110,39 @@ export function initCalculators(): void {
 
   const convUsdEl = document.getElementById("convUsd") as HTMLInputElement | null;
   const convBsEl = document.getElementById("convBs") as HTMLInputElement | null;
+  const convBcvEl = document.getElementById("convBcvUsd") as HTMLInputElement | null;
   if (convUsdEl) attachAmountInput(convUsdEl, { onChange: computeConviene });
-  if (convBsEl) attachAmountInput(convBsEl, { onChange: computeConviene });
+
+  // Campos gemelos del precio en bolívares: Bs ↔ $ al BCV. Escribir en uno
+  // actualiza el otro con la tasa BCV (el flag evita el rebote infinito).
+  let bsHandle: AmountHandle | null = null;
+  let bcvHandle: AmountHandle | null = null;
+  let syncing = false;
+  const bcvRate = () => (rates ? rateById(rates, "bcv_usd")?.price ?? 0 : 0);
+  if (convBsEl)
+    bsHandle = attachAmountInput(convBsEl, {
+      onChange: (v) => {
+        if (!syncing) {
+          syncing = true;
+          const r = bcvRate();
+          if (r > 0 && bcvHandle) (v > 0 ? bcvHandle.setValue(v / r) : bcvHandle.clear());
+          syncing = false;
+        }
+        computeConviene();
+      },
+    });
+  if (convBcvEl)
+    bcvHandle = attachAmountInput(convBcvEl, {
+      onChange: (v) => {
+        if (!syncing) {
+          syncing = true;
+          const r = bcvRate();
+          if (r > 0 && bsHandle) (v > 0 ? bsHandle.setValue(v * r) : bsHandle.clear());
+          syncing = false;
+        }
+        computeConviene();
+      },
+    });
   document.getElementById("convCustomRate")?.addEventListener("input", computeConviene);
 
   // mantener presionado el resultado para copiar el costo más conveniente

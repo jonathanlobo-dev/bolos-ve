@@ -94,8 +94,17 @@
           <div class="card">
             <label class="field-label">Precio en dólares (efectivo / USDT)</label>
             <input id="convUsd" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="0,00" />
-            <label class="field-label">Precio en bolívares (Bs)</label>
-            <input id="convBs" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="0,00" />
+            <label class="field-label">Precio en bolívares — escríbelo en Bs o en $ al BCV</label>
+            <div class="conv-bs-row">
+              <div class="conv-bs-col">
+                <span class="conv-bs-tag">Bs</span>
+                <input id="convBs" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="0,00" />
+              </div>
+              <div class="conv-bs-col">
+                <span class="conv-bs-tag">$ al BCV</span>
+                <input id="convBcvUsd" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="0,00" />
+              </div>
+            </div>
             <label class="field-label">Tasa para conseguir los Bs</label>
             <select id="convRate" class="input"></select>
             <input id="convCustomRate" class="input hidden" type="number" inputmode="decimal" placeholder="Tu tasa: Bs por 1 $ (ej: 760)" />
