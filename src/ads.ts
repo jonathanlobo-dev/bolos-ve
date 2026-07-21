@@ -44,10 +44,19 @@ async function admobModule() {
   return import("@capacitor-community/admob");
 }
 
+// El div #adBanner (debajo de la barra de pestañas) reserva el hueco del
+// banner nativo. "spacer" = hueco del alto del banner; "gone" = sin publicidad.
+function setSpacer(mode: "spacer" | "gone", heightPx?: number): void {
+  const el = document.getElementById("adBanner");
+  if (!el) return;
+  el.classList.remove("spacer", "gone");
+  el.classList.add(mode);
+  el.style.height = mode === "spacer" && heightPx ? `${heightPx}px` : "";
+}
+
 export async function initAds(): Promise<void> {
-  const placeholder = document.getElementById("adBanner");
   if (await adsDisabled()) {
-    if (placeholder) placeholder.style.display = "none";
+    setSpacer("gone");
     return;
   }
   try {
@@ -55,17 +64,28 @@ export async function initAds(): Promise<void> {
     if (!mod) return; // navegador: queda el placeholder web
     const { AdMob, BannerAdSize, BannerAdPosition } = mod;
     await AdMob.initialize({});
-    if (placeholder) placeholder.style.display = "none";
+
+    // El hueco sigue la altura REAL del banner: así nunca tapa la barra de
+    // pestañas (varía por dispositivo) y se colapsa si no llega anuncio.
+    AdMob.addListener("bannerAdSizeChanged" as any, (size: { width: number; height: number }) => {
+      const h = Math.round((size?.height ?? 0) / (window.devicePixelRatio || 1));
+      if (h > 0) setSpacer("spacer", h);
+      else setSpacer("gone");
+    });
+    AdMob.addListener("bannerAdFailedToLoad" as any, () => setSpacer("gone"));
+
+    setSpacer("spacer", 50); // reserva provisional mientras carga (banner = 50dp)
     await AdMob.showBanner({
       adId: BANNER_ID,
       adSize: BannerAdSize.BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
-      margin: 56, // deja espacio para la barra de pestañas
+      margin: 0, // anclado al borde inferior; el hueco lo pone el spacer
       isTesting: TESTING, // true = anuncios de prueba (seguros mientras desarrollamos)
     });
     bannerShown = true;
   } catch (e) {
     console.warn("[ads] no se pudo iniciar AdMob:", e);
+    setSpacer("gone");
   }
 }
 

@@ -803,7 +803,8 @@ body {
   z-index: 40;
 }
 .ad-banner {
-  height: 50px;
+  height: calc(50px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -814,12 +815,28 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
 }
+/* Nativo: el banner real de AdMob flota anclado abajo; este div solo reserva
+   el hueco (la altura la ajusta ads.ts con la altura real del banner). */
+.ad-banner.spacer {
+  visibility: hidden;
+  border: 0;
+  background: transparent;
+  padding-bottom: 0;
+}
+/* Sin publicidad (dispositivo admin o sin anuncio): solo el safe-area. */
+.ad-banner.gone {
+  visibility: hidden;
+  border: 0;
+  background: transparent;
+  height: env(safe-area-inset-bottom, 0px);
+  padding-bottom: 0;
+}
 
 .tabbar {
   display: flex;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  /* el safe-area inferior lo cubre .ad-banner, que ahora va debajo */
 }
 .tab {
   flex: 1;
