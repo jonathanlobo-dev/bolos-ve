@@ -296,7 +296,52 @@ async function tryDolarVzla(): Promise<Rate[]> {
   }
 }
 
-// --- Yadio: precio P2P del USDT/VES (gratis, sin key, preciso). Lo mismo que usa Arco. ---
+// --- Binance P2P: el precio REAL del mercado (fuente principal del P2P) ---
+// Se consultan los anuncios donde el usuario VENDE USDT (lo que recibe en Bs) y
+// se toma la mediana de los mejores, para no depender de un anuncio suelto.
+// Los agregadores (Yadio, DolarApi) suelen ir 2-3% por debajo del mercado real,
+// por eso Binance va primero y ellos quedan de respaldo.
+async function tryBinanceP2P(): Promise<Rate | null> {
+  try {
+    const data = await fetchJson("/binance/bapi/c2c/v2/friendly/c2c/adv/search", {
+      method: "POST",
+      timeoutMs: 9000,
+      body: {
+        fiat: "VES",
+        page: 1,
+        rows: 20,
+        tradeType: "SELL", // anuncios donde tú vendes USDT y recibes Bs
+        asset: "USDT",
+        countries: [],
+        payTypes: [],
+        publisherType: null,
+      },
+    });
+    const prices: number[] = (data?.data ?? [])
+      .map((a: any) => num(a?.adv?.price))
+      .filter((n: number) => n > 0)
+      .sort((a: number, b: number) => b - a); // mejores (más altos) primero
+    if (prices.length === 0) return null;
+    const top = prices.slice(0, 10);
+    const price = top[Math.floor(top.length / 2)]; // mediana de los 10 mejores
+    if (!(price > 0)) return null;
+    return {
+      id: "binance_usd",
+      title: "P2P (USDT)",
+      icon: "👛",
+      symbol: "$",
+      price,
+      change: 0,
+      percent: 0,
+      lastUpdate: new Date().toISOString(),
+    };
+  } catch (err) {
+    console.warn("[rateProvider] Binance P2P falló:", err);
+    return null;
+  }
+}
+
+// --- Yadio: respaldo del P2P si Binance no responde. ---
 async function tryYadio(): Promise<Rate | null> {
   try {
     const data = await fetchJson("/yadio/rate/VES/USD", { timeoutMs: 8000 });
@@ -486,7 +531,16 @@ export async function getRates(): Promise<RatesResult> {
     }
   }
 
-  // 2) Yadio para el P2P (preciso, gratis, sin key) si aún falta.
+  // 2) Binance P2P: el precio real del mercado. Fuente principal del P2P.
+  if (!collected.has("binance_usd")) {
+    const b = await tryBinanceP2P();
+    if (b) {
+      collected.set(b.id, b);
+      sources.add("Binance P2P");
+    }
+  }
+
+  // 2b) Yadio: respaldo del P2P si Binance no respondió.
   if (!collected.has("binance_usd")) {
     const y = await tryYadio();
     if (y) {

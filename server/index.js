@@ -96,16 +96,17 @@ async function binanceP2P(tradeType = "SELL") {
   const prices = (json?.data || [])
     .map((a) => parseFloat(a?.adv?.price))
     .filter((n) => Number.isFinite(n) && n > 0)
-    .sort((a, b) => a - b);
+    .sort((a, b) => b - a); // mejores (más altos) primero, igual que en la app
   if (prices.length === 0) return null;
   const slice = prices.slice(0, 10);
   return slice[Math.floor(slice.length / 2)];
 }
 
+// Binance primero: los agregadores (Yadio) suelen ir 2-3% por debajo del mercado real.
 async function getP2P() {
-  const y = await yadioP2P().catch(() => null);
-  if (y) return y;
-  return binanceP2P().catch(() => null);
+  const b = await binanceP2P().catch(() => null);
+  if (b) return b;
+  return yadioP2P().catch(() => null);
 }
 
 async function buildRates() {
