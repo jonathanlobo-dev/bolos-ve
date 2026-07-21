@@ -189,16 +189,16 @@
 
       <!-- ===== BARRA INFERIOR: banner (no invasivo) + pestañas ===== -->
       <div class="bottom-stack">
+        <!-- El banner nativo se dibuja JUSTO AQUÍ (encima de las pestañas):
+             ads.ts mide la barra de pestañas y sube el banner esa altura. -->
+        <div id="adBanner" class="ad-banner">
+          <span>Publicidad</span>
+        </div>
         <nav class="tabbar">
           <button class="tab active" data-view="home">🏠<span>Inicio</span></button>
           <button class="tab" data-view="calc">🧮<span>Calculadoras</span></button>
           <button class="tab" data-view="alerts">🔔<span>Alertas</span></button>
         </nav>
-        <!-- En Android, el banner nativo se ancla al borde inferior y este div
-             reserva su espacio para que no tape la barra de pestañas. -->
-        <div id="adBanner" class="ad-banner">
-          <span>Publicidad</span>
-        </div>
       </div>
     </div>
 

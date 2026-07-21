@@ -54,17 +54,12 @@ function setSpacer(mode: "spacer" | "gone"): void {
   el.classList.add(mode);
 }
 
-// Alto de la barra de navegación del sistema (safe-area inferior) en px CSS ≈ dp.
-// En Android 15 (edge-to-edge) la ventana llega hasta abajo del todo y el banner
-// debe subirse exactamente esto para no tapar los botones/gesto del sistema.
-function safeAreaBottom(): number {
-  const probe = document.createElement("div");
-  probe.style.cssText =
-    "position:fixed;bottom:0;width:0;height:env(safe-area-inset-bottom,0px);visibility:hidden;";
-  document.body.appendChild(probe);
-  const h = Math.round(probe.getBoundingClientRect().height);
-  probe.remove();
-  return h;
+// Cuánto hay que subir el banner para que quede JUSTO ENCIMA de la barra de
+// pestañas: su altura real (que ya incluye el safe-area de la barra de
+// navegación del sistema). Se mide en px CSS, que en el WebView equivalen a dp.
+function tabbarHeight(): number {
+  const el = document.querySelector<HTMLElement>(".tabbar");
+  return el ? Math.round(el.getBoundingClientRect().height) : 56;
 }
 
 export async function initAds(): Promise<void> {
@@ -87,7 +82,7 @@ export async function initAds(): Promise<void> {
       adId: BANNER_ID,
       adSize: BannerAdSize.BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
-      margin: safeAreaBottom(), // sobre la barra de navegación del sistema
+      margin: tabbarHeight(), // justo encima de la barra de pestañas
       isTesting: TESTING, // true = anuncios de prueba (seguros mientras desarrollamos)
     });
     bannerShown = true;

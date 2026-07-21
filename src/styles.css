@@ -105,7 +105,8 @@ body {
 .view {
   display: none;
   flex: 1;
-  padding: 8px 16px 140px; /* deja espacio para banner + tabbar */
+  /* espacio para banner (50) + pestañas (~63) + barra del sistema */
+  padding: 8px 16px calc(140px + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
 }
 .view.active {
@@ -818,8 +819,7 @@ body {
   z-index: 40;
 }
 .ad-banner {
-  height: calc(50px + env(safe-area-inset-bottom, 0px));
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -830,30 +830,25 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
 }
-/* Nativo: el banner real de AdMob flota anclado abajo (sobre la barra de
-   navegación del sistema); este div solo reserva el hueco: alto del banner
-   (50dp fijo) + el safe-area inferior. */
+/* Nativo: el banner real de AdMob se dibuja sobre este div (que va encima de
+   la barra de pestañas); aquí solo se reserva su alto. */
 .ad-banner.spacer {
   visibility: hidden;
   border: 0;
   background: transparent;
-  height: calc(50px + env(safe-area-inset-bottom, 0px));
-  padding-bottom: 0;
+  height: 50px;
 }
-/* Sin publicidad (dispositivo admin o sin anuncio): solo el safe-area. */
+/* Sin publicidad (dispositivo admin o sin anuncio): el hueco desaparece. */
 .ad-banner.gone {
-  visibility: hidden;
-  border: 0;
-  background: transparent;
-  height: env(safe-area-inset-bottom, 0px);
-  padding-bottom: 0;
+  display: none;
 }
 
 .tabbar {
   display: flex;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  /* el safe-area inferior lo cubre .ad-banner, que ahora va debajo */
+  /* deja libre la barra de navegación del sistema (Android 15 va edge-to-edge) */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .tab {
   flex: 1;
