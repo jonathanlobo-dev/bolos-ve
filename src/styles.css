@@ -336,6 +336,20 @@ body {
   font-size: 0.72rem;
   margin-top: 4px;
 }
+/* Aviso legal: la app es solo informativa (se muestra en ⚙️ Configuración) */
+.disclaimer {
+  margin-top: 18px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+.disclaimer p + p {
+  margin-top: 8px;
+}
 .empty {
   color: var(--text-dim);
   text-align: center;
