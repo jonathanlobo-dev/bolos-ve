@@ -33,17 +33,23 @@ interface DayStat {
 }
 
 let viewing: string | null = null; // fecha que se está viendo (null = hoy)
+let viewingResult: RatesResult | null = null; // las tasas de esa fecha
 
 /** true si Inicio está mostrando una fecha pasada (el refresco no debe pisarla). */
 export function isViewingHistory(): boolean {
   return viewing !== null;
 }
 
+/** Fecha y tasas que se están viendo (para que compartir mande ESE día). */
+export function getHistoryView(): { date: string; result: RatesResult } | null {
+  return viewing && viewingResult ? { date: viewing, result: viewingResult } : null;
+}
+
 function vzlaToday(): string {
   return new Date(Date.now() - 4 * 3600 * 1000).toISOString().slice(0, 10);
 }
 
-function prettyDate(iso: string): string {
+export function prettyDate(iso: string): string {
   const [y, m, d] = iso.split("-");
   return `${d}/${m}/${y}`;
 }
@@ -104,13 +110,15 @@ async function openDate(date: string): Promise<void> {
     return;
   }
   viewing = date;
+  viewingResult = toResult(date, stats);
   showStrip(date);
-  renderHome(toResult(date, stats));
+  renderHome(viewingResult);
 }
 
 /** Vuelve a las tasas de hoy. `refreshNow` repinta con los datos en vivo. */
 export function backToToday(refreshNow: () => void): void {
   viewing = null;
+  viewingResult = null;
   showStrip(null);
   refreshNow();
 }

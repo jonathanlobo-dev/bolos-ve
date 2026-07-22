@@ -4,6 +4,7 @@
 
 import { calcGap, type RatesResult } from "./rateProvider";
 import { getConvieneData } from "./calculators";
+import { getHistoryView, prettyDate } from "./history";
 import { convertWith, getHomeAmount } from "./home";
 import { buildShareImage, type ShareCard } from "./shareImage";
 import { copyText, fmt, toast } from "./util";
@@ -32,10 +33,15 @@ interface Content {
 }
 
 function ratesContent(): Content | null {
-  if (!latest || latest.rates.length === 0) return null;
-  const result = latest;
+  // Si se está viendo una fecha pasada, se comparte ESE día (con su fecha).
+  const hist = getHistoryView();
+  const result = hist?.result ?? latest;
+  if (!result || result.rates.length === 0) return null;
   const gap = calcGap(result);
   const note = gap != null ? `Brecha BCV ↔ P2P: ${fmt(gap)}%` : undefined;
+  const fecha = hist ? prettyDate(hist.date) : null;
+  const when = fecha ? `del ${fecha}` : "de hoy";
+  const sello = fecha ? `${fecha} · cierre del día` : stamp();
 
   // Si hay un monto escrito en Inicio se comparte convertido, y debajo las
   // tasas "peladas" como respaldo. Con 0 (o con el 1 por defecto) no aporta
@@ -48,22 +54,24 @@ function ratesContent(): Content | null {
 
   const lines: string[] = [];
   if (withAmount) {
-    lines.push(`💱 *${head} — Bolos VE*`, "");
+    lines.push(`💱 *${head} ${fecha ? `al ${fecha}` : ""} — Bolos VE*`.replace("  ", " "), "");
     for (const r of result.rates) {
       lines.push(`${r.icon} ${r.title}: ${money(convertWith(r, amount, toBs), r)}`);
     }
-    lines.push("", "📊 *Tasas de hoy:*");
+    lines.push("", `📊 *Tasas ${when}:*`);
   } else {
-    lines.push("💱 *Tasas de hoy — Bolos VE*", "");
+    lines.push(`💱 *Tasas ${when} — Bolos VE*`, "");
   }
   for (const r of result.rates) lines.push(`${r.icon} ${r.title}: Bs ${fmt(r.price)}`);
   if (note) lines.push("", `📊 ${note}`);
-  lines.push("", `🕒 ${stamp()}`, "", `📲 Descarga Bolos VE: ${DOWNLOAD_URL}`);
+  lines.push("", `🕒 ${sello}`, "", `📲 Descarga Bolos VE: ${DOWNLOAD_URL}`);
 
   return {
     text: lines.join("\n"),
     card: {
-      title: withAmount ? `${head} equivale a` : "Tasas de hoy",
+      title: withAmount
+        ? `${head} ${fecha ? `al ${fecha}` : "equivale a"}`
+        : `Tasas ${when}`,
       rows: result.rates.map((r) => ({
         label: r.title,
         value: withAmount ? money(convertWith(r, amount, toBs), r) : `Bs ${fmt(r.price)}`,
@@ -75,7 +83,7 @@ function ratesContent(): Content | null {
             : undefined,
       })),
       note,
-      stamp: stamp(),
+      stamp: sello,
     },
   };
 }
@@ -127,7 +135,7 @@ function calcContent(): Content | null {
         `💰 Precio en bolívares: Bs ${fmt(d.bs)}`,
         ...(equiv.length ? [`   (equivale a ${equiv.join(" · ")})`] : []),
         "",
-        `Pagando en Bs con ${d.rateLabel} (${fmt(d.ratePrice)}) te cuesta: $ ${fmt(d.costInUsd)}`,
+        `Para conseguir esos Bs vendiendo $ a ${fmt(d.ratePrice)} (${d.rateLabel}) tendrías que vender: $ ${fmt(d.costInUsd)}`,
         "",
         `✅ ${verdict}`,
         "",
@@ -145,9 +153,9 @@ function calcContent(): Content | null {
             sub: equiv.length ? `= ${equiv.join(" · ")}` : undefined,
           },
           {
-            label: `Pagando en Bs · ${d.rateLabel}`,
+            label: `Vendiendo $ a ${fmt(d.ratePrice)} (${d.rateLabel})`,
             value: `$ ${fmt(d.costInUsd)}`,
-            sub: `Bs ${fmt(d.bs)} ÷ ${fmt(d.ratePrice)}`,
+            sub: `tendrías que vender esto para cubrir los Bs`,
           },
         ],
         note: verdict,
