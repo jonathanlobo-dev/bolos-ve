@@ -19,6 +19,7 @@
     "@capacitor/app": "^6.0.3",
     "@capacitor/core": "^6.1.2",
     "@capacitor/device": "^6.0.3",
+    "@capacitor/filesystem": "^6.0.4",
     "@capacitor/local-notifications": "^6.1.0",
     "@capacitor/preferences": "^6.0.2",
     "@capacitor/share": "^6.0.3",
