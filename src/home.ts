@@ -6,7 +6,7 @@ import { calcGap, dailyHistory, type Rate, type RatesResult } from "./rateProvid
 import { getConfig, onConfigChange, visibleOrderedIds } from "./config";
 import { attachAmountInput, type AmountHandle } from "./amountInput";
 import { load, save } from "./storage";
-import { attachHold, attachHoldToCopy, fmt } from "./util";
+import { attachHold, attachHoldToCopy, fmt, icon, rateIcon } from "./util";
 
 type Direction = "toBs" | "fromBs"; // moneda→Bs  |  Bs→moneda
 
@@ -71,7 +71,7 @@ function cardHtml(rate: Rate): string {
   return `
     <div class="rate-card" data-id="${rate.id}">
       <div class="rate-head">
-        <span class="rate-title">${rate.icon} ${rate.title}</span>
+        <span class="rate-title">${rateIcon(rate.id)} ${rate.title}</span>
         ${sparkSvg(dailyHistory(rate.id))}
       </div>
       <div class="rate-converted">${convertedText(rate)}</div>
@@ -149,7 +149,7 @@ function renderGap(result: RatesResult): void {
     return;
   }
   strip.classList.remove("hidden");
-  strip.innerHTML = `📊 Brecha BCV ↔ P2P: <b>${fmt(gap)}%</b>`;
+  strip.innerHTML = `${icon("chart")} Brecha BCV ↔ P2P: <b>${fmt(gap)}%</b>`;
 }
 
 export function renderHome(result: RatesResult): void {

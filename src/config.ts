@@ -4,6 +4,7 @@
 import { AVAILABLE_RATES } from "./rateProvider";
 import { hideAdBanner, showAdBanner } from "./ads";
 import { applyTheme, getTheme, type Theme } from "./theme";
+import { icon, rateIcon } from "./util";
 import { openOnboarding } from "./onboarding";
 import { load, save } from "./storage";
 
@@ -71,8 +72,8 @@ function renderConfigList(): void {
       const hidden = config.hidden.includes(id);
       return `
         <div class="config-row${hidden ? " off" : ""}" data-id="${id}">
-          <button class="eye" data-id="${id}" aria-label="Mostrar/ocultar">${hidden ? "🚫" : "👁️"}</button>
-          <span class="config-name">${m.icon} ${m.title}</span>
+          <button class="eye" data-id="${id}" aria-label="Mostrar/ocultar">${icon(hidden ? "eye-off" : "eye")}</button>
+          <span class="config-name">${rateIcon(id)} ${m.title}</span>
           <span class="reorder" data-id="${id}" aria-label="Reordenar">≡</span>
         </div>`;
     })

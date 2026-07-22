@@ -4,6 +4,23 @@
 export const fmt = (n: number) =>
   n.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+/**
+ * Devuelve el `<svg>` de un icono del sprite (ver index.html).
+ * Se usa para la interfaz; en textos (compartir, notificaciones) van emojis.
+ */
+export const icon = (name: string): string =>
+  `<svg class="ic" aria-hidden="true"><use href="#ic-${name}" /></svg>`;
+
+// Cada tasa tiene su icono; si aparece una nueva, cae en el del banco.
+const RATE_ICONS: Record<string, string> = {
+  bcv_usd: "bank",
+  binance_usd: "wallet",
+  bcv_eur: "euro",
+};
+
+/** Icono de una tasa por su id. */
+export const rateIcon = (id: string): string => icon(RATE_ICONS[id] ?? "bank");
+
 export async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);

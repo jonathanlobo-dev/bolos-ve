@@ -1,28 +1,19 @@
 # Ideas pendientes
 
-## Iconos propios en vez de emojis (v2)
+## ✅ Iconos propios (hecho)
 
-Hoy toda la interfaz usa emojis (📅 🧹 📤 ⚙️ 🏛️ 👛 💶 🏠 🧮 🔔). Se ven
-"amateur" y además **cambian de estilo según el teléfono**, porque cada capa de
-Android trae su propio set: la app no se ve igual en un Xiaomi que en un
-Samsung. Referencia de lo que se busca: Arco App usa iconos de línea, finos y
-monocromos, teñidos con el color de la marca.
+La interfaz usa iconos de línea SVG (estilo Lucide, MIT) en vez de emojis. Van
+como sprite `<symbol>` embebido en `index.html` y se pintan con
+`<svg class="ic"><use href="#ic-nombre"/></svg>`; heredan el color con
+`stroke: currentColor`. En TypeScript se usan los helpers `icon()` y
+`rateIcon()` de `util.ts`.
 
-Plan cuando se retome:
+Los emojis se conservan a propósito en el texto de **compartir**, la
+**notificación diaria** y las **alertas**: ahí es texto plano y un SVG no se
+puede pintar.
 
-1. Set de iconos SVG de línea con licencia libre (Lucide o Tabler, ambos MIT).
-2. Inyectarlos como sprite SVG (`<symbol>` + `<use>`) o inline en el HTML, no
-   como archivos sueltos: son pocos y así no se pierde tiempo de carga.
-3. `fill: none; stroke: currentColor; stroke-width: 1.75` para que hereden el
-   color del tema (dorado en la barra superior, atenuado en las pestañas).
-4. Sustituir por pantalla: barra superior (calendario, limpiar, compartir,
-   configuración) → pestañas (inicio, calculadoras, alertas) → tarjetas
-   (banco, billetera, euro) → tiles de calculadoras.
-5. Ojo: los emojis de las tarjetas también salen en el texto de **compartir** y
-   en la **notificación diaria**. Ahí sí conviene dejarlos, porque son texto
-   plano y un SVG no aplica.
-
-Esfuerzo estimado: una sesión. No es urgente; es puramente estético.
+Si se agrega una tasa nueva, hay que sumarla al mapa `RATE_ICONS` de `util.ts`
+(si no, cae en el icono del banco).
 
 ## Gráfico de historial (v2)
 
