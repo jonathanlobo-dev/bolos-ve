@@ -401,6 +401,13 @@ body {
 .disclaimer p + p {
   margin-top: 8px;
 }
+.disclaimer-src {
+  font-size: 0.68rem;
+  opacity: 0.75;
+}
+.disclaimer-src a {
+  color: var(--gold);
+}
 .empty {
   color: var(--text-dim);
   text-align: center;

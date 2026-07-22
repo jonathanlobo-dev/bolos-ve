@@ -17,6 +17,7 @@ import {
   prune,
   rangeOf,
   recordSample,
+  seedP2P,
 } from "./history.js";
 
 const app = express();
@@ -209,6 +210,7 @@ app.get("/", (_req, res) => res.send("Bolos VE backend OK. Ver /api/rates"));
 const port = process.env.PORT || 3000;
 app.listen(port, async () => {
   console.log(`Bolos VE backend escuchando en :${port}`);
+  seedP2P(); // histórico del P2P (dataset abierto, solo la primera vez)
   await backfillBCV(); // histórico oficial del BCV (solo la primera vez)
   sample();
   setInterval(sample, SAMPLE_MS);

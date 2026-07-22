@@ -58,7 +58,11 @@ function cardHtml(rate: Rate): string {
     : "—";
   const unit = `1 ${rate.symbol} = Bs ${fmt(rate.price)}`;
   const antes =
-    rate.previous != null ? `<div class="rate-prev">Antes: ${fmt(rate.previous)}</div>` : "";
+    rate.previous != null
+      ? `<div class="rate-prev">Antes: ${fmt(rate.previous)}</div>`
+      : rate.lastUpdate.startsWith("vigente")
+        ? `<div class="rate-prev">${rate.lastUpdate}</div>`
+        : "";
   // Al ver una fecha pasada se muestra el rango del día en vez del cambio.
   const hasRange = rate.dayMin != null && rate.dayMax != null && rate.dayMax > rate.dayMin;
   const footer = hasRange

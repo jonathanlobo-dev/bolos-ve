@@ -29,6 +29,7 @@ interface DayStat {
   min: number;
   max: number;
   close: number;
+  desde?: string; // si la tasa se arrastró (BCV no publica fines de semana)
 }
 
 let viewing: string | null = null; // fecha que se está viendo (null = hoy)
@@ -62,7 +63,8 @@ function toResult(date: string, stats: Record<string, DayStat>): RatesResult {
       percent: 0,
       dayMin: s.min,
       dayMax: s.max,
-      lastUpdate: date,
+      // El BCV no publica fines de semana: se indica de qué día viene la tasa.
+      lastUpdate: s.desde ? `vigente desde el ${prettyDate(s.desde)}` : date,
     });
   }
   return { rates, fetchedAt: Date.parse(`${date}T12:00:00-04:00`), source: "historial", stale: false };

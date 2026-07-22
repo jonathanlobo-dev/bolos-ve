@@ -6,7 +6,7 @@
 //   daily   -> resumen por día (min, max, avg, close). Se conserva siempre.
 
 import { DatabaseSync } from "node:sqlite";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import * as XLSX from "xlsx";
 
@@ -163,6 +163,40 @@ export async function backfillBCV({ force = false } = {}) {
   return { dias, archivos: files.length };
 }
 
+// ---------- Semilla del P2P (dataset histórico de usdt.com.ve, CC-BY-4.0) ----------
+// El P2P no tiene API histórica pública, pero usdt.com.ve publica su dataset con
+// licencia abierta. Se carga una vez (resumido por día en seed/p2p-history.json,
+// generado con tools/seed-p2p.mjs) y de ahí en adelante acumulamos nosotros.
+
+const upsertDailyFull = db.prepare(`
+  INSERT INTO daily (rate, day, min, max, avg, close, samples)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(rate, day) DO NOTHING
+`);
+
+export function seedP2P({ force = false } = {}) {
+  const doneKey = "p2p_seed_v1";
+  const done = db.prepare("SELECT v FROM meta WHERE k = ?").get(doneKey);
+  if (done && !force) return { skipped: true };
+
+  const file = new URL("./seed/p2p-history.json", import.meta.url);
+  let data;
+  try {
+    data = JSON.parse(readFileSync(file, "utf8"));
+  } catch {
+    return { skipped: true, motivo: "sin archivo de semilla" };
+  }
+  // No pisa lo que ya midió el servidor: ON CONFLICT DO NOTHING.
+  for (const d of data.days ?? []) {
+    if (d?.day && d.close > 0) {
+      upsertDailyFull.run("p2p_usdt", d.day, d.min, d.max, d.avg, d.close, 0);
+    }
+  }
+  db.prepare("INSERT OR REPLACE INTO meta (k, v) VALUES (?, ?)").run(doneKey, String(Date.now()));
+  console.log(`[history] semilla del P2P cargada: ${data.days?.length ?? 0} días (${data.fuente})`);
+  return { dias: data.days?.length ?? 0 };
+}
+
 // ---------- Lectura (para los endpoints) ----------
 
 export function historyOf(rate, days = 30) {
@@ -175,6 +209,15 @@ export function historyOf(rate, days = 30) {
     .reverse();
 }
 
+// El BCV no publica fines de semana ni feriados, pero su tasa sigue vigente
+// hasta el siguiente día hábil: si falta ese día, se arrastra la última.
+const CARRY_FORWARD = ["bcv_usd", "bcv_eur"];
+
+const lastBefore = db.prepare(
+  `SELECT day, min, max, avg, close FROM daily
+   WHERE rate = ? AND day <= ? ORDER BY day DESC LIMIT 1`,
+);
+
 export function dayOf(date) {
   const rows = db
     .prepare("SELECT rate, min, max, avg, close FROM daily WHERE day = ?")
@@ -182,6 +225,19 @@ export function dayOf(date) {
   const rates = {};
   for (const r of rows) {
     rates[r.rate] = { min: r.min, max: r.max, avg: r.avg, close: r.close };
+  }
+  for (const id of CARRY_FORWARD) {
+    if (rates[id]) continue;
+    const prev = lastBefore.get(id, date);
+    if (prev) {
+      rates[id] = {
+        min: prev.min,
+        max: prev.max,
+        avg: prev.avg,
+        close: prev.close,
+        desde: prev.day, // día en que se publicó realmente
+      };
+    }
   }
   return rates;
 }
