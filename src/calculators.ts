@@ -109,40 +109,44 @@ export function initCalculators(): void {
   document.querySelector('.tab[data-view="calc"]')?.addEventListener("click", showHub);
 
   const convUsdEl = document.getElementById("convUsd") as HTMLInputElement | null;
-  const convBsEl = document.getElementById("convBs") as HTMLInputElement | null;
-  const convBcvEl = document.getElementById("convBcvUsd") as HTMLInputElement | null;
   if (convUsdEl) attachAmountInput(convUsdEl, { onChange: computeConviene });
 
-  // Campos gemelos del precio en bolívares: Bs ↔ $ al BCV. Escribir en uno
-  // actualiza el otro con la tasa BCV (el flag evita el rebote infinito).
-  let bsHandle: AmountHandle | null = null;
-  let bcvHandle: AmountHandle | null = null;
+  // Campos enlazados del precio en bolívares: Bs, $ al BCV y € al BCV.
+  // Todo se normaliza a bolívares (valor × tasa) y se reparte a los demás.
+  // El flag `syncing` evita que se llamen entre sí en bucle.
+  const LINKED: { id: string; rateId: string | null }[] = [
+    { id: "convBs", rateId: null }, // ya está en bolívares
+    { id: "convBcvUsd", rateId: "bcv_usd" },
+    { id: "convBcvEur", rateId: "bcv_eur" },
+  ];
+  const handles: Record<string, AmountHandle> = {};
   let syncing = false;
-  const bcvRate = () => (rates ? rateById(rates, "bcv_usd")?.price ?? 0 : 0);
-  if (convBsEl)
-    bsHandle = attachAmountInput(convBsEl, {
+  const rateFor = (rateId: string | null): number =>
+    rateId === null ? 1 : rates ? (rateById(rates, rateId)?.price ?? 0) : 0;
+
+  for (const field of LINKED) {
+    const el = document.getElementById(field.id) as HTMLInputElement | null;
+    if (!el) continue;
+    handles[field.id] = attachAmountInput(el, {
       onChange: (v) => {
         if (!syncing) {
           syncing = true;
-          const r = bcvRate();
-          if (r > 0 && bcvHandle) (v > 0 ? bcvHandle.setValue(v / r) : bcvHandle.clear());
+          const own = rateFor(field.rateId);
+          const bs = v * own; // el monto llevado a bolívares
+          for (const other of LINKED) {
+            if (other.id === field.id) continue;
+            const h = handles[other.id];
+            const r = rateFor(other.rateId);
+            if (!h) continue;
+            if (v > 0 && own > 0 && r > 0) h.setValue(bs / r);
+            else h.clear();
+          }
           syncing = false;
         }
         computeConviene();
       },
     });
-  if (convBcvEl)
-    bcvHandle = attachAmountInput(convBcvEl, {
-      onChange: (v) => {
-        if (!syncing) {
-          syncing = true;
-          const r = bcvRate();
-          if (r > 0 && bsHandle) (v > 0 ? bsHandle.setValue(v * r) : bsHandle.clear());
-          syncing = false;
-        }
-        computeConviene();
-      },
-    });
+  }
   document.getElementById("convCustomRate")?.addEventListener("input", computeConviene);
 
   // mantener presionado el resultado para copiar el costo más conveniente

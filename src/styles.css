@@ -207,10 +207,14 @@ body {
   border: 0;
   padding: 0;
 }
-/* ¿Me conviene?: campos gemelos Bs ↔ $ al BCV */
-.conv-bs-row {
-  display: flex;
-  gap: 10px;
+/* ¿Me conviene?: campos enlazados (Bs arriba; $ y € al BCV debajo) */
+.conv-bs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 10px;
+}
+.conv-bs-col.wide {
+  grid-column: 1 / -1;
 }
 .conv-bs-col {
   flex: 1;

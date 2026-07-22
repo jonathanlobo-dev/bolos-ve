@@ -37,7 +37,8 @@ function setupTabs(): void {
 async function refresh(): Promise<void> {
   if (refreshing) return;
   refreshing = true;
-  const btn = document.getElementById("refreshBtn");
+  // el indicador de carga es el de "deslizar para actualizar" (#pullInd)
+  const btn = document.getElementById("pullInd");
   btn?.classList.add("spin");
   try {
     const result = await getRates();
@@ -146,7 +147,6 @@ function init(): void {
       { ms: 3000 },
     );
 
-  document.getElementById("refreshBtn")?.addEventListener("click", refresh);
 
   // pintar al instante las tasas cacheadas (si hay), antes de la red
   const cached = getCachedRates();
