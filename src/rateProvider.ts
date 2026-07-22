@@ -213,10 +213,13 @@ function buildFromDolarApi(
   return { id, title, icon, symbol, price, change: 0, percent: 0, lastUpdate: String(it.fechaActualizacion ?? "") };
 }
 
-// --- Backend propio (opcional): la fuente más precisa, lee BCV directo + Binance ---
-// La URL se configura en ⚙️ Configuración (se guarda en localStorage).
+// --- Backend propio: fuente principal (BCV + Binance) y única con historial ---
+// Viene por defecto; se puede sobreescribir en ⚙️ Configuración (localStorage).
+const DEFAULT_BACKEND = "https://bolos-ve-production.up.railway.app";
+
 export function getBackendUrl(): string {
-  return (load<string>("bolitas.backendUrl", "") || "").trim().replace(/\/$/, "");
+  const custom = (load<string>("bolitas.backendUrl", "") || "").trim();
+  return (custom || DEFAULT_BACKEND).replace(/\/$/, "");
 }
 
 async function tryBackend(): Promise<Rate[]> {
