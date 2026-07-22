@@ -3,6 +3,8 @@
 // Inicio van las tasas, y si estás en una calculadora, su resultado.
 
 import { calcGap, type RatesResult } from "./rateProvider";
+import { getConvieneData } from "./calculators";
+import { convertWith, getHomeAmount } from "./home";
 import { buildShareImage, type ShareCard } from "./shareImage";
 import { copyText, fmt, toast } from "./util";
 
@@ -31,20 +33,46 @@ interface Content {
 
 function ratesContent(): Content | null {
   if (!latest || latest.rates.length === 0) return null;
-  const lines = ["💱 *Tasas de hoy — Bolos VE*", ""];
-  for (const r of latest.rates) lines.push(`${r.icon} ${r.title}: Bs ${fmt(r.price)}`);
-  const gap = calcGap(latest);
+  const result = latest;
+  const gap = calcGap(result);
   const note = gap != null ? `Brecha BCV ↔ P2P: ${fmt(gap)}%` : undefined;
+
+  // Si hay un monto escrito en Inicio se comparte convertido, y debajo las
+  // tasas "peladas" como respaldo. Con 0 (o con el 1 por defecto) no aporta
+  // nada convertir, así que se comparten solo las tasas.
+  const { amount, toBs } = getHomeAmount();
+  const withAmount = amount > 0 && amount !== 1;
+  const money = (v: number, r: (typeof result.rates)[number]) =>
+    toBs ? `Bs ${fmt(v)}` : `${r.symbol} ${fmt(v)}`;
+  const head = toBs ? `$ ${fmt(amount)}` : `Bs ${fmt(amount)}`;
+
+  const lines: string[] = [];
+  if (withAmount) {
+    lines.push(`💱 *${head} — Bolos VE*`, "");
+    for (const r of result.rates) {
+      lines.push(`${r.icon} ${r.title}: ${money(convertWith(r, amount, toBs), r)}`);
+    }
+    lines.push("", "📊 *Tasas de hoy:*");
+  } else {
+    lines.push("💱 *Tasas de hoy — Bolos VE*", "");
+  }
+  for (const r of result.rates) lines.push(`${r.icon} ${r.title}: Bs ${fmt(r.price)}`);
   if (note) lines.push("", `📊 ${note}`);
   lines.push("", `🕒 ${stamp()}`, "", `📲 Descarga Bolos VE: ${DOWNLOAD_URL}`);
+
   return {
     text: lines.join("\n"),
     card: {
-      title: "Tasas de hoy",
-      rows: latest.rates.map((r) => ({
+      title: withAmount ? `${head} equivale a` : "Tasas de hoy",
+      rows: result.rates.map((r) => ({
         label: r.title,
-        value: `Bs ${fmt(r.price)}`,
-        sub: r.previous != null ? `Antes: ${fmt(r.previous)}` : undefined,
+        value: withAmount ? money(convertWith(r, amount, toBs), r) : `Bs ${fmt(r.price)}`,
+        // Con monto, debajo va la tasa usada; sin monto, el valor anterior.
+        sub: withAmount
+          ? `1 ${r.symbol} = Bs ${fmt(r.price)}`
+          : r.previous != null
+            ? `Antes: ${fmt(r.previous)}`
+            : undefined,
       })),
       note,
       stamp: stamp(),
@@ -82,36 +110,49 @@ function calcContent(): Content | null {
   }
 
   if (which === "conviene") {
-    const box = document.getElementById("convResult");
-    const opts = [...(box?.querySelectorAll(".conv-opt") ?? [])];
-    const verdict = box?.querySelector(".conv-verdict")?.textContent?.trim();
-    if (opts.length < 2 || !verdict) return null;
-    const rows = opts.map((o) => {
-      // La opción es: <span>Pagar en <b>Bs</b> · Tasa<br><small>detalle</small></span><b>$ 14,55</b>
-      // El monto es el <b> hijo directo (dentro del span hay otro <b> decorativo).
-      const span = o.querySelector("span");
-      const detail = span?.querySelector("small")?.textContent?.trim();
-      const label = span?.cloneNode(true) as HTMLElement | undefined;
-      label?.querySelector("small")?.remove();
-      return {
-        label: label?.textContent?.replace(/\s+/g, " ").trim() ?? "",
-        value: o.querySelector(":scope > b")?.textContent?.trim() ?? "",
-        sub: detail || undefined,
-      };
-    });
+    // Se toman los números del propio cálculo (no de la pantalla), así se
+    // puede incluir el precio en bolívares y sus equivalentes al BCV.
+    const d = getConvieneData();
+    if (!d) return null;
+    const verdict = `Te conviene pagar en ${d.cheaperBs ? "bolívares" : "dólares/USDT"} · ahorras $ ${fmt(d.ahorro)}`;
+    const equiv: string[] = [];
+    if (d.bcvUsd > 0) equiv.push(`$ ${fmt(d.bcvUsd)} al BCV`);
+    if (d.bcvEur > 0) equiv.push(`€ ${fmt(d.bcvEur)} al BCV`);
+
     return {
       text: [
         "⚖️ *¿Me conviene? — Bolos VE*",
         "",
-        ...rows.map((r) => `${r.label}: ${r.value}`),
+        `💵 Precio en efectivo/USDT: $ ${fmt(d.usd)}`,
+        `💰 Precio en bolívares: Bs ${fmt(d.bs)}`,
+        ...(equiv.length ? [`   (equivale a ${equiv.join(" · ")})`] : []),
         "",
-        verdict,
+        `Pagando en Bs con ${d.rateLabel} (${fmt(d.ratePrice)}) te cuesta: $ ${fmt(d.costInUsd)}`,
+        "",
+        `✅ ${verdict}`,
         "",
         `🕒 ${stamp()}`,
         "",
         `📲 Descarga Bolos VE: ${DOWNLOAD_URL}`,
       ].join("\n"),
-      card: { title: "¿Me conviene?", rows, note: verdict, stamp: stamp() },
+      card: {
+        title: "¿Me conviene?",
+        rows: [
+          { label: "Precio en efectivo / USDT", value: `$ ${fmt(d.usd)}` },
+          {
+            label: "Precio en bolívares",
+            value: `Bs ${fmt(d.bs)}`,
+            sub: equiv.length ? `= ${equiv.join(" · ")}` : undefined,
+          },
+          {
+            label: `Pagando en Bs · ${d.rateLabel}`,
+            value: `$ ${fmt(d.costInUsd)}`,
+            sub: `Bs ${fmt(d.bs)} ÷ ${fmt(d.ratePrice)}`,
+          },
+        ],
+        note: verdict,
+        stamp: stamp(),
+      },
     };
   }
   return null;

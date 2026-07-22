@@ -8,6 +8,24 @@ import { attachHoldToCopy, fmt } from "./util";
 let rates: RatesResult | null = null;
 let convBest = 0; // costo (en $) de la opción más conveniente, para copiar
 
+// Datos del último cálculo de "¿Me conviene?", para compartirlo completo.
+export interface ConvieneData {
+  usd: number; // precio en efectivo/USDT
+  bs: number; // el mismo precio, en bolívares
+  bcvUsd: number; // ese precio en $ al BCV
+  bcvEur: number; // ese precio en € al BCV
+  rateLabel: string; // tasa con la que se consiguen los Bs
+  ratePrice: number;
+  costInUsd: number; // lo que cuesta pagar en Bs, medido en dólares
+  cheaperBs: boolean;
+  ahorro: number;
+}
+let convData: ConvieneData | null = null;
+
+export function getConvieneData(): ConvieneData | null {
+  return convData;
+}
+
 function numVal(id: string): number {
   const el = document.getElementById(id) as HTMLInputElement | null;
   const v = el ? parseFloat(el.value.replace(",", ".")) : NaN;
@@ -70,12 +88,29 @@ function computeConviene(): void {
   if (!(usd > 0) || !(bs > 0) || !(ratePrice > 0)) {
     box.innerHTML = `<p class="pm-detail">Escribe el precio en $, el precio en Bs y la tasa para comparar.</p>`;
     convBest = 0;
+    convData = null;
     return;
   }
   const costBsInUsd = bs / ratePrice; // lo que te cuesta en $ pagar el precio en Bs
   const cheaperBs = costBsInUsd < usd;
   convBest = Math.min(usd, costBsInUsd);
   const ahorro = Math.abs(usd - costBsInUsd);
+
+  // Se guarda el cálculo completo (incluye los equivalentes al BCV) para que
+  // al compartir no falte el precio en bolívares.
+  const bcvUsdRate = rates ? (rateById(rates, "bcv_usd")?.price ?? 0) : 0;
+  const bcvEurRate = rates ? (rateById(rates, "bcv_eur")?.price ?? 0) : 0;
+  convData = {
+    usd,
+    bs,
+    bcvUsd: bcvUsdRate > 0 ? bs / bcvUsdRate : 0,
+    bcvEur: bcvEurRate > 0 ? bs / bcvEurRate : 0,
+    rateLabel,
+    ratePrice,
+    costInUsd: costBsInUsd,
+    cheaperBs,
+    ahorro,
+  };
   box.innerHTML = `
     <div class="conv-opt ${cheaperBs ? "" : "win"}">
       <span>Pagar en <b>$</b> (efectivo/USDT)</span>

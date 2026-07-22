@@ -15,6 +15,17 @@ let amount = 1;
 let direction: Direction = "toBs";
 let amountHandle: AmountHandle | null = null;
 
+/** Monto y sentido que hay ahora en Inicio (lo usa el compartir). */
+export function getHomeAmount(): { amount: number; toBs: boolean } {
+  return { amount, toBs: direction === "toBs" };
+}
+
+/** Convierte un monto con una tasa, respetando el sentido elegido. */
+export function convertWith(rate: Rate, value: number, toBs: boolean): number {
+  if (toBs) return value * rate.price;
+  return rate.price ? value / rate.price : 0;
+}
+
 function visibleRates(): Rate[] {
   if (!current) return [];
   const byId = new Map(current.rates.map((r) => [r.id, r]));
