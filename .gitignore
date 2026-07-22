@@ -32,3 +32,6 @@ assets/logo.png
 assets/logo-dark.png
 assets/playstore-icon-512.png
 assets/feature-graphic-1024x500.png
+
+# Base de datos del historial (se genera sola)
+server/data/

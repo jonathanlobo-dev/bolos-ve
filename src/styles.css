@@ -172,6 +172,41 @@ body {
 .gap-strip b {
   color: var(--gold);
 }
+/* Franja "Viendo el 15/07/2026 · Volver a hoy" */
+.hist-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(255, 196, 0, 0.1);
+  border: 1px solid rgba(255, 196, 0, 0.35);
+  border-radius: 12px;
+  color: var(--gold);
+  font-size: 0.85rem;
+  padding: 9px 12px;
+  margin-top: 10px;
+}
+.hist-back {
+  background: var(--gold);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+/* El input de fecha solo abre el calendario nativo: no debe verse. */
+.hidden-date {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  padding: 0;
+}
 /* ¿Me conviene?: campos gemelos Bs ↔ $ al BCV */
 .conv-bs-row {
   display: flex;

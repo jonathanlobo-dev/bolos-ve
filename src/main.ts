@@ -14,6 +14,7 @@ import { applyTheme, watchSystemTheme } from "./theme";
 import { initOnboarding } from "./onboarding";
 import { initDaily, setDailyRates } from "./daily";
 import { initBackButton } from "./back";
+import { initHistory, isViewingHistory } from "./history";
 
 const REFRESH_MS = 5 * 60 * 1000; // refresco automático cada 5 min
 const MIN_REFRESH_MS = 60 * 1000; // al volver a la app, no repetir si hay datos de hace <1 min
@@ -41,7 +42,8 @@ async function refresh(): Promise<void> {
   try {
     const result = await getRates();
     if (!result.stale) lastFetchAt = Date.now();
-    renderHome(result);
+    // Si el usuario está viendo una fecha pasada, no le pisamos las tarjetas.
+    if (!isViewingHistory()) renderHome(result);
     setCalcRates(result);
     setShareRates(result);
     setDailyRates(result);
@@ -125,6 +127,7 @@ function init(): void {
   initPullToRefresh();
   initOnboarding();
   initBackButton();
+  initHistory(refresh);
 
   // gesto oculto: mantener el logo ~3s muestra y copia el ID del dispositivo.
   // Sirve para agregar un dispositivo a ADMIN_DEVICE_IDS (ads.ts) — a quien no
@@ -147,7 +150,7 @@ function init(): void {
 
   // pintar al instante las tasas cacheadas (si hay), antes de la red
   const cached = getCachedRates();
-  if (cached) {
+  if (cached && !isViewingHistory()) {
     renderHome(cached);
     setCalcRates(cached);
     setShareRates(cached);

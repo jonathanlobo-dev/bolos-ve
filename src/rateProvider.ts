@@ -12,6 +12,8 @@ export interface Rate {
   change: number; // cambio absoluto del día (Bs)
   percent: number; // % de cambio del día
   previous?: number; // valor anterior (para mostrar "Antes:")
+  dayMin?: number; // mínimo del día (solo al ver una fecha pasada)
+  dayMax?: number; // máximo del día (solo al ver una fecha pasada)
   lastUpdate: string;
 }
 
@@ -119,6 +121,7 @@ interface FetchOpts {
   method?: "GET" | "POST";
   body?: unknown;
   timeoutMs?: number;
+  absolute?: boolean; // `path` ya es una URL completa (p. ej. el backend propio)
 }
 
 // Obtiene JSON evitando CORS:
@@ -126,14 +129,19 @@ interface FetchOpts {
 //  - En navegador (dev): pasa por el proxy de Vite.
 // Siempre sin caché para que los datos lleguen frescos.
 export async function fetchJson(path: string, opts: FetchOpts = {}): Promise<any> {
-  const { method = "GET", body, timeoutMs = 10000 } = opts;
+  const { method = "GET", body, timeoutMs = 10000, absolute = false } = opts;
   const { Capacitor, CapacitorHttp } = await import("@capacitor/core");
 
   const headers: Record<string, string> = { Accept: "application/json" };
   if (body) headers["Content-Type"] = "application/json";
 
   if (Capacitor.isNativePlatform()) {
-    const common = { url: nativeUrl(path), headers, readTimeout: timeoutMs, connectTimeout: timeoutMs };
+    const common = {
+      url: absolute ? path : nativeUrl(path),
+      headers,
+      readTimeout: timeoutMs,
+      connectTimeout: timeoutMs,
+    };
     const res =
       method === "POST"
         ? await CapacitorHttp.post({ ...common, data: body })
@@ -144,7 +152,8 @@ export async function fetchJson(path: string, opts: FetchOpts = {}): Promise<any
 
   // navegador: cache-buster + no-store para evitar respuestas viejas
   const sep = path.includes("?") ? "&" : "?";
-  const webUrl = webUrlFor(path) + (method === "GET" ? `${sep}_=${Date.now()}` : "");
+  const base = absolute ? path : webUrlFor(path);
+  const webUrl = base + (method === "GET" ? `${sep}_=${Date.now()}` : "");
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
@@ -483,26 +492,59 @@ function applyLiveChange(rates: Rate[]): void {
 // Guardamos un precio por día y por tasa; se poda a los últimos 8 días.
 const DAILY_KEY = "bolitas.rateDaily";
 
+export interface DayStat {
+  min: number;
+  max: number;
+  close: number;
+}
+type DailyStore = Record<string, Record<string, DayStat | number>>;
+
+// Venezuela es UTC-4: el "día" se calcula con ese desfase (igual que el servidor).
+function vzlaDay(ms = Date.now()): string {
+  return new Date(ms - 4 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+// Formato viejo: solo el precio (número). Se sigue leyendo sin romper nada.
+function asStat(v: DayStat | number): DayStat {
+  return typeof v === "number" ? { min: v, max: v, close: v } : v;
+}
+
+const DAILY_KEEP = 90; // días de historial local
+
 function recordDaily(rates: Rate[]): void {
-  const day = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const hist = load<Record<string, Record<string, number>>>(DAILY_KEY, {});
+  const day = vzlaDay();
+  const hist = load<DailyStore>(DAILY_KEY, {});
   for (const r of rates) {
     if (!(r.price > 0)) continue;
     const h = (hist[r.id] ??= {});
-    h[day] = r.price;
-    for (const k of Object.keys(h).sort().slice(0, -8)) delete h[k];
+    const prev = h[day] ? asStat(h[day]) : null;
+    h[day] = prev
+      ? { min: Math.min(prev.min, r.price), max: Math.max(prev.max, r.price), close: r.price }
+      : { min: r.price, max: r.price, close: r.price };
+    for (const k of Object.keys(h).sort().slice(0, -DAILY_KEEP)) delete h[k];
   }
   save(DAILY_KEY, hist);
 }
 
-/** Precios diarios (ordenados, hasta 8 días) de una tasa, para dibujar el sparkline. */
+/** Precios de cierre por día (ordenados) de una tasa, para dibujar el sparkline. */
 export function dailyHistory(id: string): number[] {
-  const hist = load<Record<string, Record<string, number>>>(DAILY_KEY, {});
+  const hist = load<DailyStore>(DAILY_KEY, {});
   const h = hist[id];
   if (!h) return [];
   return Object.keys(h)
     .sort()
-    .map((k) => h[k]);
+    .slice(-8) // el sparkline muestra la última semana
+    .map((k) => asStat(h[k]).close);
+}
+
+/** Resumen local de un día concreto (respaldo cuando no hay servidor). */
+export function localDay(date: string): Record<string, DayStat> {
+  const hist = load<DailyStore>(DAILY_KEY, {});
+  const out: Record<string, DayStat> = {};
+  for (const [id, days] of Object.entries(hist)) {
+    if (days[date]) out[id] = asStat(days[date]);
+  }
+  return out;
 }
 
 /**

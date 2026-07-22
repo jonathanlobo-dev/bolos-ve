@@ -1,5 +1,36 @@
 # Backend de Bolos VE
 
+## Historial de tasas
+
+Además de las tasas actuales, el servidor guarda el **historial diario**:
+
+- **BCV (dólar y euro)**: se rellena con el histórico **oficial** del BCV
+  (los `.xls` de "Tipo de cambio de referencia SMC"), con datos diarios desde
+  **abril de 2024**. Se descarga solo la primera vez que arranca el servidor.
+- **P2P (USDT)**: no existe fuente histórica pública, así que se acumula con
+  un muestreo cada 15 minutos. El historial del P2P empieza el día del deploy.
+
+Endpoints:
+
+```
+GET /api/history?rate=bcv_usd&days=30   -> { rate, days: [{ day, min, max, avg, close }] }
+GET /api/day?date=2026-03-16            -> { date, rates: { bcv_usd: {...}, ... } }
+GET /api/history/range                  -> { first, last }
+```
+
+### Deploy en Railway (importante)
+
+1. Servicio nuevo apuntando a la carpeta `server/`.
+2. **Volume**: Settings → Volumes → mount path `/data`.
+   Sin volumen, la base de datos se borra en cada redeploy.
+3. **Variable**: `DB_PATH=/data/history.db`.
+4. Node 24 o superior (ya declarado en `engines`); usa `node:sqlite`, así que
+   no hace falta compilar nada.
+5. Al terminar, pega la URL del servicio en la app: ⚙️ → "Servidor de datos".
+
+---
+
+
 Lee la tasa **oficial del BCV** (directo de `bcv.org.ve`) y el **P2P de Binance** (USDT/VES),
 y los sirve como JSON. Es lo que hace que los datos sean tan precisos como los de apps tipo Arco.
 

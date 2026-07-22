@@ -11,6 +11,8 @@
       <header class="topbar">
         <h1 class="brand"><img src="/logo.png" alt="" class="brand-logo"> Bolos VE</h1>
         <div class="topbar-actions">
+          <button id="histBtn" class="icon-btn" title="Ver otra fecha" aria-label="Ver otra fecha">📅</button>
+          <input type="date" id="histDate" class="hidden-date" aria-hidden="true" tabindex="-1" />
           <button id="clearBtn" class="icon-btn" title="Limpiar monto" aria-label="Limpiar">🧹</button>
           <button id="shareBtn" class="icon-btn" title="Compartir tasas" aria-label="Compartir">📤</button>
           <button id="configBtn" class="icon-btn" title="Configuración" aria-label="Configuración">⚙️</button>
@@ -37,6 +39,11 @@
           <button class="chip" data-amt="10">10</button>
           <button class="chip" data-amt="50">50</button>
           <button class="chip" data-amt="100">100</button>
+        </div>
+
+        <div id="histStrip" class="hist-strip hidden">
+          <span id="histLabel"></span>
+          <button id="histBack" class="hist-back">Volver a hoy</button>
         </div>
 
         <div id="gapStrip" class="gap-strip hidden"></div>

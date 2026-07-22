@@ -10,6 +10,14 @@ import express from "express";
 import cors from "cors";
 import * as cheerio from "cheerio";
 import { Agent } from "undici";
+import {
+  backfillBCV,
+  dayOf,
+  historyOf,
+  prune,
+  rangeOf,
+  recordSample,
+} from "./history.js";
 
 const app = express();
 app.use(cors());
@@ -140,7 +148,68 @@ app.get("/api/rates", async (_req, res) => {
   }
 });
 
+// ---------- Historial ----------
+
+app.get("/api/history", (req, res) => {
+  const rate = String(req.query.rate || "bcv_usd");
+  const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 400);
+  try {
+    res.json({ rate, days: historyOf(rate, days) });
+  } catch (e) {
+    console.error("history falló:", e);
+    res.status(500).json({ error: "No se pudo leer el historial." });
+  }
+});
+
+app.get("/api/day", (req, res) => {
+  const date = String(req.query.date || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ error: "Fecha inválida. Usa AAAA-MM-DD." });
+  }
+  try {
+    res.json({ date, rates: dayOf(date) });
+  } catch (e) {
+    console.error("day falló:", e);
+    res.status(500).json({ error: "No se pudo leer ese día." });
+  }
+});
+
+app.get("/api/history/range", (_req, res) => {
+  try {
+    res.json(rangeOf());
+  } catch (e) {
+    console.error("range falló:", e);
+    res.status(500).json({ error: "No se pudo leer el rango." });
+  }
+});
+
+// ---------- Muestreo periódico ----------
+// El BCV histórico viene de sus archivos oficiales; el P2P no tiene fuente
+// histórica pública, así que se acumula desde aquí.
+
+const SAMPLE_MS = parseInt(process.env.SAMPLE_MS, 10) || 15 * 60 * 1000;
+
+async function sample() {
+  try {
+    const r = await buildRates();
+    const now = Date.now();
+    if (r.p2p_usdt) recordSample("p2p_usdt", r.p2p_usdt, now);
+    // El BCV también se muestrea: cubre el día de hoy antes de que el archivo
+    // oficial lo publique, y sirve de respaldo si el BCV cambia su web.
+    if (r.bcv_usd) recordSample("bcv_usd_live", r.bcv_usd, now);
+    if (r.bcv_eur) recordSample("bcv_eur_live", r.bcv_eur, now);
+    prune();
+  } catch (e) {
+    console.warn("[history] muestreo falló:", e.message);
+  }
+}
+
 app.get("/", (_req, res) => res.send("Bolos VE backend OK. Ver /api/rates"));
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Bolos VE backend escuchando en :${port}`));
+app.listen(port, async () => {
+  console.log(`Bolos VE backend escuchando en :${port}`);
+  await backfillBCV(); // histórico oficial del BCV (solo la primera vez)
+  sample();
+  setInterval(sample, SAMPLE_MS);
+});

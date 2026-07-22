@@ -59,6 +59,11 @@ function cardHtml(rate: Rate): string {
   const unit = `1 ${rate.symbol} = Bs ${fmt(rate.price)}`;
   const antes =
     rate.previous != null ? `<div class="rate-prev">Antes: ${fmt(rate.previous)}</div>` : "";
+  // Al ver una fecha pasada se muestra el rango del día en vez del cambio.
+  const hasRange = rate.dayMin != null && rate.dayMax != null && rate.dayMax > rate.dayMin;
+  const footer = hasRange
+    ? `<div class="rate-badge flat">Mín ${fmt(rate.dayMin!)} · Máx ${fmt(rate.dayMax!)}</div>`
+    : `<div class="rate-badge ${cls}">${badge}</div>`;
   return `
     <div class="rate-card" data-id="${rate.id}">
       <div class="rate-head">
@@ -68,7 +73,7 @@ function cardHtml(rate: Rate): string {
       <div class="rate-converted">${convertedText(rate)}</div>
       <div class="rate-unit">${unit}</div>
       ${antes}
-      <div class="rate-badge ${cls}">${badge}</div>
+      ${footer}
     </div>`;
 }
 
@@ -150,7 +155,9 @@ export function renderHome(result: RatesResult): void {
 
   const updated = document.getElementById("homeUpdated");
   if (updated) {
-    if (result.fetchedAt === 0) {
+    if (result.source === "historial") {
+      updated.textContent = "Cierre de ese día";
+    } else if (result.fetchedAt === 0) {
       updated.textContent = "Sin datos. Revisa tu conexión.";
     } else {
       const time = new Date(result.fetchedAt).toLocaleTimeString("es-VE", {

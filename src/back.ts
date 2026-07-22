@@ -23,7 +23,13 @@ function goBack(): boolean {
     (document.getElementById("configClose") as HTMLButtonElement | null)?.click();
     return true;
   }
-  // 3) dentro de una calculadora → volver al menú de calculadoras
+  // 3) viendo una fecha pasada → volver a las tasas de hoy
+  const histStrip = document.getElementById("histStrip");
+  if (histStrip && !histStrip.classList.contains("hidden")) {
+    (document.getElementById("histBack") as HTMLButtonElement | null)?.click();
+    return true;
+  }
+  // 4) dentro de una calculadora → volver al menú de calculadoras
   const calcActive = document.getElementById("view-calc")?.classList.contains("active");
   if (calcActive) {
     const panelOpen = document.querySelector<HTMLElement>(".calc-panel:not(.hidden)");
@@ -32,13 +38,13 @@ function goBack(): boolean {
       return true;
     }
   }
-  // 4) en otra pestaña → volver a Inicio
+  // 5) en otra pestaña → volver a Inicio
   const homeActive = document.getElementById("view-home")?.classList.contains("active");
   if (!homeActive) {
     document.querySelector<HTMLButtonElement>('.tab[data-view="home"]')?.click();
     return true;
   }
-  // 5) en Inicio sin nada abierto → no hay más atrás
+  // 6) en Inicio sin nada abierto → no hay más atrás
   return false;
 }
 

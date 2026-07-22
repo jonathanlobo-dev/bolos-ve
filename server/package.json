@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Backend de Bolos VE: lee el BCV (bcv.org.ve) y el P2P de Binance, y los sirve como JSON.",
+  "description": "Backend de Bolos VE: sirve las tasas actuales (BCV y P2P de Binance) y el historial diario.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -12,9 +12,10 @@
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "undici": "^6.19.8"
+    "undici": "^6.19.8",
+    "xlsx": "^0.18.5"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
   }
 }
