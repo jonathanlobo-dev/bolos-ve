@@ -4,7 +4,7 @@
 
 import type { RatesResult } from "./rateProvider";
 import { load, save } from "./storage";
-import { fmt, toast } from "./util";
+import { fmt } from "./util";
 
 interface DailyCfg {
   enabled: boolean;
@@ -71,36 +71,6 @@ export function setDailyRates(result: RatesResult): void {
   if (getCfg().enabled && bodyText() !== lastScheduledBody) reschedule();
 }
 
-// Notificación de prueba ~10 segundos en el futuro (para verificar que funciona).
-async function testNow(): Promise<void> {
-  const LN = getLN();
-  if (!LN) {
-    toast("Solo funciona en la app instalada (no en el navegador).");
-    return;
-  }
-  try {
-    let perm = await LN.checkPermissions();
-    if (perm.display !== "granted") perm = await LN.requestPermissions();
-    if (perm.display !== "granted") {
-      toast("Falta el permiso de notificaciones.");
-      return;
-    }
-    await LN.schedule({
-      notifications: [
-        {
-          id: 9002,
-          title: "🔔 Prueba — Bolos VE",
-          body: bodyText() || "Notificación de prueba",
-          schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true },
-        },
-      ],
-    });
-    toast("Te llegará en unos segundos 🔔");
-  } catch (e: any) {
-    toast(`Error: ${String(e?.message ?? e).slice(0, 70)}`);
-  }
-}
-
 export function initDaily(): void {
   const cfg = getCfg();
   const toggle = document.getElementById("dailyToggle") as HTMLInputElement | null;
@@ -131,5 +101,4 @@ export function initDaily(): void {
 
   toggle?.addEventListener("change", onChange);
   timeEl?.addEventListener("change", onChange);
-  document.getElementById("dailyTest")?.addEventListener("click", testNow);
 }

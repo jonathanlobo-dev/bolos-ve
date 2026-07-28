@@ -5,8 +5,10 @@
 import { calcGap, dailyHistory, type Rate, type RatesResult } from "./rateProvider";
 import { getConfig, onConfigChange, visibleOrderedIds } from "./config";
 import { attachAmountInput, type AmountHandle } from "./amountInput";
+import { getCustomRate, setCustomRate } from "./customRate";
+import { shareCustomRate } from "./share";
 import { load, save } from "./storage";
-import { attachHold, attachHoldToCopy, fmt, icon, rateIcon } from "./util";
+import { attachHold, attachHoldToCopy, fmt, icon, rateIcon, toast } from "./util";
 
 type Direction = "toBs" | "fromBs"; // moneda→Bs  |  Bs→moneda
 
@@ -24,6 +26,15 @@ export function getHomeAmount(): { amount: number; toBs: boolean } {
 export function convertWith(rate: Rate, value: number, toBs: boolean): number {
   if (toBs) return value * rate.price;
   return rate.price ? value / rate.price : 0;
+}
+
+/** Convierte el monto de Inicio con un precio (Bs por $) suelto, según el sentido. */
+export function convertPrice(price: number): number {
+  if (!(price > 0)) return 0;
+  return direction === "toBs" ? amount * price : amount / price;
+}
+function convertPriceText(price: number): string {
+  return direction === "toBs" ? `Bs ${fmt(convertPrice(price))}` : `$ ${fmt(convertPrice(price))}`;
 }
 
 function visibleRates(): Rate[] {
@@ -92,13 +103,56 @@ function cardHtml(rate: Rate): string {
     </div>`;
 }
 
+// Cuarta tarjeta: la tasa que el usuario fija a mano. No tiene gráfico (no hay
+// histórico de una tasa inventada), así que lleva su propio botón de compartir.
+function customCardHtml(): string {
+  const rate = getCustomRate();
+  const set = rate > 0;
+  return `
+    <div class="rate-card custom-card" data-id="custom">
+      <div class="rate-head">
+        <span class="rate-title">${icon("edit")} Tasa personalizada</span>
+        <span class="custom-actions">
+          <button class="card-share" aria-label="Compartir tasa personalizada">${icon("share")}</button>
+        </span>
+      </div>
+      ${
+        set
+          ? `<div class="rate-converted">${convertPriceText(rate)}</div>
+             <div class="rate-unit">1 $ = Bs ${fmt(rate)}</div>
+             <div class="rate-badge flat">Toca ${icon("edit")} para cambiarla</div>`
+          : `<div class="rate-converted custom-empty">Toca para fijar tu tasa</div>
+             <div class="rate-unit">Ej: la de tu banco o tu vendedor</div>`
+      }
+    </div>`;
+}
+
+function editCustomRate(): void {
+  const cur = getCustomRate();
+  const raw = window.prompt("Tu tasa (Bs por 1 $):", cur > 0 ? String(cur) : "");
+  if (raw == null) return;
+  const v = parseFloat(raw.replace(",", "."));
+  if (!(v > 0)) {
+    if (raw.trim() === "") setCustomRate(0); // vaciar = quitar
+    renderCards();
+    return;
+  }
+  setCustomRate(v);
+  renderCards();
+}
+
 function recompute(): void {
   if (!current) return;
   document.querySelectorAll<HTMLElement>(".rate-card").forEach((card) => {
-    const id = card.dataset.id;
-    const rate = current!.rates.find((r) => r.id === id);
     const el = card.querySelector(".rate-converted");
-    if (rate && el) el.textContent = convertedText(rate);
+    if (!el) return;
+    if (card.dataset.id === "custom") {
+      const cr = getCustomRate();
+      if (cr > 0) el.textContent = convertPriceText(cr);
+      return;
+    }
+    const rate = current!.rates.find((r) => r.id === card.dataset.id);
+    if (rate) el.textContent = convertedText(rate);
   });
 }
 
@@ -147,8 +201,34 @@ function renderCards(): void {
     container.innerHTML = `<p class="empty">No hay tarjetas para mostrar.<br/>Actívalas en ⚙️ Configuración o revisa tu conexión.</p>`;
     return;
   }
-  container.innerHTML = list.map(cardHtml).join("");
+  container.innerHTML = list.map(cardHtml).join("") + customCardHtml();
   attachLongPressCopy(container);
+  attachCustomCard(container);
+}
+
+// Botones de la tarjeta personalizada: editar (toca la tarjeta) y compartir.
+function attachCustomCard(container: HTMLElement): void {
+  const card = container.querySelector<HTMLElement>(".custom-card");
+  if (!card) return;
+
+  card.addEventListener("click", (e) => {
+    if ((e.target as HTMLElement).closest(".card-share")) return; // el share tiene lo suyo
+    if (card.dataset.held) {
+      delete card.dataset.held; // no editar tras un mantener-presionado (copiar)
+      return;
+    }
+    editCustomRate();
+  });
+
+  card.querySelector<HTMLButtonElement>(".card-share")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (getCustomRate() <= 0) {
+      toast("Primero fija tu tasa");
+      editCustomRate();
+      return;
+    }
+    shareCustomRate();
+  });
 }
 
 function renderGap(result: RatesResult): void {

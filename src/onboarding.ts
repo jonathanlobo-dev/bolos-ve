@@ -23,6 +23,11 @@ const STEPS: Step[] = [
     text: "<b>Pago Móvil</b>: cuánto necesitas tener o cuánto puedes enviar contando la comisión. <b>¿Me conviene?</b>: te dice si te sale mejor pagar en dólares o en bolívares.",
   },
   {
+    icon: "📅",
+    title: "Historial de tasas",
+    text: "Toca el <b>calendario</b> arriba para ver las tasas de cualquier día pasado (el dólar BCV desde 2024). Ideal para saber cuánto estaba una fecha. También puedes crear una <b>tasa personalizada</b> como cuarta tarjeta.",
+  },
+  {
     icon: "🔔",
     title: "Alertas y ajustes",
     text: "Crea <b>alertas</b> de precio. En <b>⚙️</b> eliges qué tasas ver, el orden, el tema y la <b>notificación diaria</b>. Con <b>📤</b> compartes las tasas como imagen.",

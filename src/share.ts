@@ -4,8 +4,9 @@
 
 import { calcGap, type RatesResult } from "./rateProvider";
 import { getConvieneData } from "./calculators";
+import { getCustomRate } from "./customRate";
 import { getHistoryView, prettyDate } from "./history";
-import { convertWith, getHomeAmount } from "./home";
+import { convertPrice, convertWith, getHomeAmount } from "./home";
 import { buildShareImage, type ShareCard } from "./shareImage";
 import { copyText, fmt, toast } from "./util";
 
@@ -195,12 +196,35 @@ async function writeImage(base64: string): Promise<string | null> {
   }
 }
 
-async function share(): Promise<void> {
-  const content = buildContent();
-  if (!content) {
-    toast("Aún no hay nada que compartir");
-    return;
-  }
+// Comparte una tasa personalizada sola: el monto del visor convertido a esa
+// tasa, la tasa misma, y el enlace + imagen. (Botón propio en su tarjeta.)
+export function shareCustomRate(): void {
+  const rate = getCustomRate();
+  if (!(rate > 0)) return;
+  const { amount, toBs } = getHomeAmount();
+  const withAmount = amount > 0 && amount !== 1;
+  const head = toBs ? `$ ${fmt(amount)}` : `Bs ${fmt(amount)}`;
+  const conv = toBs ? `Bs ${fmt(convertPrice(rate))}` : `$ ${fmt(convertPrice(rate))}`;
+
+  const lines: string[] = ["💱 *Tasa personalizada — Bolos VE*", ""];
+  if (withAmount) lines.push(`${head} = ${conv}`, "");
+  lines.push(`1 $ = Bs ${fmt(rate)}`, "", `🕒 ${stamp()}`, "", `📲 Descarga Bolos VE: ${DOWNLOAD_URL}`);
+
+  sendContent({
+    text: lines.join("\n"),
+    card: {
+      title: withAmount ? `${head} a tu tasa` : "Tasa personalizada",
+      rows: [
+        ...(withAmount ? [{ label: head, value: conv }] : []),
+        { label: "Tu tasa", value: `Bs ${fmt(rate)}`, sub: "por 1 $" },
+      ],
+      stamp: stamp(),
+    },
+  });
+}
+
+// Prepara la imagen (si se puede) y abre el menú de compartir del teléfono.
+async function sendContent(content: Content): Promise<void> {
   const { text, card } = content;
   const sharePlugin = plugin("Share");
 
@@ -236,6 +260,15 @@ async function share(): Promise<void> {
   }
   const ok = await copyText(text);
   if (ok) toast("Copiado — pégalo donde quieras");
+}
+
+function share(): void {
+  const content = buildContent();
+  if (!content) {
+    toast("Aún no hay nada que compartir");
+    return;
+  }
+  sendContent(content);
 }
 
 export function initShare(): void {

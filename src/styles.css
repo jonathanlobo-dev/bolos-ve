@@ -326,6 +326,37 @@ body {
   background: #241f08;
   transform: scale(0.98);
 }
+/* Tarjeta de tasa personalizada: borde dorado punteado + botón de compartir. */
+.custom-card {
+  border-style: dashed;
+  border-color: var(--gold-dim);
+  cursor: pointer;
+}
+.custom-card .card-share {
+  background: var(--surface-2);
+  border: none;
+  color: var(--gold);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.custom-card .card-share .ic {
+  width: 17px;
+  height: 17px;
+}
+.custom-empty {
+  color: var(--text-dim);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.custom-card .rate-title .ic {
+  width: 15px;
+  height: 15px;
+}
 .cards.layout-columns .rate-converted {
   font-size: 1.4rem;
 }
