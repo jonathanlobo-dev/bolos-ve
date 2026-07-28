@@ -5,6 +5,16 @@ export const fmt = (n: number) =>
   n.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /**
+ * true si corre dentro del APK nativo (Capacitor); false en navegador/PWA.
+ * En web NO hay AdMob, ni notificaciones nativas fiables → se ocultan Alertas
+ * y la notificación diaria, que dependen de eso.
+ */
+export function isNativeApp(): boolean {
+  const cap = (window as any).Capacitor;
+  return !!cap?.isNativePlatform?.();
+}
+
+/**
  * Devuelve el `<svg>` de un icono del sprite (ver index.html).
  * Se usa para la interfaz; en textos (compartir, notificaciones) van emojis.
  */

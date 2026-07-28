@@ -1,0 +1,17 @@
+{
+  "name": "Bolos VE",
+  "short_name": "Bolos VE",
+  "description": "Dólar BCV, Euro y P2P (USDT) en tiempo real, con calculadoras e historial.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "lang": "es-VE",
+  "categories": ["finance", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

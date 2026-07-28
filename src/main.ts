@@ -3,7 +3,7 @@
 import "./styles.css";
 import { getCachedRates, getRates } from "./rateProvider";
 import { getDeviceId, initAds } from "./ads";
-import { attachHold, buzz, copyText, toast } from "./util";
+import { attachHold, buzz, copyText, isNativeApp, toast } from "./util";
 import { initConfig } from "./config";
 import { initHome, renderHome } from "./home";
 import { initPagoMovil } from "./pagomovil";
@@ -113,7 +113,17 @@ function initPullToRefresh(): void {
   });
 }
 
+// En web/PWA se ocultan Alertas y la notificación diaria (dependen de plugins
+// nativos que no existen fuera del APK). En el APK todo queda visible.
+function applyPlatformMode(): void {
+  if (isNativeApp()) return;
+  document.body.classList.add("web");
+  // si la pestaña activa fuera Alertas (no debería), volver a Inicio
+  document.querySelector<HTMLButtonElement>('.tab[data-view="home"]')?.click();
+}
+
 function init(): void {
+  applyPlatformMode();
   applyTheme(); // aplica el tema guardado antes de renderizar
   watchSystemTheme();
   setupTabs();
@@ -165,6 +175,14 @@ function init(): void {
       refresh();
     }
   });
+
+  // Service worker: solo en web/PWA (hace la app instalable y usable sin conexión).
+  // En el APK nativo no hace falta y podría interferir con las actualizaciones.
+  if (!isNativeApp() && "serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    });
+  }
 }
 
 if (document.readyState === "loading") {

@@ -52,6 +52,23 @@ body {
   margin: 0 auto;
 }
 
+/* Web/PWA: se ocultan las funciones que dependen de plugins nativos. */
+body.web [data-native-only] {
+  display: none !important;
+}
+/* En pantalla ancha (escritorio/tablet) la app queda centrada con un marco. */
+@media (min-width: 560px) {
+  body {
+    background: #000;
+  }
+  #app {
+    min-height: 100vh;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    background: var(--bg);
+  }
+}
+
 /* ---- Topbar ---- */
 .topbar {
   display: flex;
