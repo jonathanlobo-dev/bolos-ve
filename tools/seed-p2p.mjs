@@ -1,4 +1,4 @@
-// Convierte el dataset histórico de USDT/VES (CSV de usdt.com.ve, CC-BY-4.0)
+// Convierte el dataset histórico de USDT/VES (CSV de usdt.com.ve)
 // en un resumen diario compacto que el servidor carga la primera vez.
 //
 // Uso:  node tools/seed-p2p.mjs "C:/ruta/usdt-ves-historical.csv"

@@ -163,9 +163,9 @@ export async function backfillBCV({ force = false } = {}) {
   return { dias, archivos: files.length };
 }
 
-// ---------- Semilla del P2P (dataset histórico de usdt.com.ve, CC-BY-4.0) ----------
+// ---------- Semilla del P2P (dataset histórico de usdt.com.ve) ----------
 // El P2P no tiene API histórica pública, pero usdt.com.ve publica su dataset con
-// licencia abierta. Se carga una vez (resumido por día en seed/p2p-history.json,
+// licencia libre. Se carga una vez (resumido por día en seed/p2p-history.json,
 // generado con tools/seed-p2p.mjs) y de ahí en adelante acumulamos nosotros.
 
 const upsertDailyFull = db.prepare(`
