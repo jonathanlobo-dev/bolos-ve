@@ -8,7 +8,7 @@ import { attachAmountInput, type AmountHandle } from "./amountInput";
 import { getCustomRate, setCustomRate } from "./customRate";
 import { shareCustomRate } from "./share";
 import { load, save } from "./storage";
-import { attachHold, attachHoldToCopy, fmt, icon, rateIcon, toast } from "./util";
+import { attachHold, attachHoldToCopy, fmt, icon, rateIcon } from "./util";
 
 type Direction = "toBs" | "fromBs"; // moneda→Bs  |  Bs→moneda
 
@@ -222,11 +222,7 @@ function attachCustomCard(container: HTMLElement): void {
 
   card.querySelector<HTMLButtonElement>(".card-share")?.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (getCustomRate() <= 0) {
-      toast("Primero fija tu tasa");
-      editCustomRate();
-      return;
-    }
+    if (getCustomRate() <= 0) return; // sin tasa fijada, el botón no hace nada
     shareCustomRate();
   });
 }

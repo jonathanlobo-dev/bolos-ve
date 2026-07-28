@@ -206,17 +206,18 @@ export function shareCustomRate(): void {
   const head = toBs ? `$ ${fmt(amount)}` : `Bs ${fmt(amount)}`;
   const conv = toBs ? `Bs ${fmt(convertPrice(rate))}` : `$ ${fmt(convertPrice(rate))}`;
 
-  const lines: string[] = ["💱 *Tasa personalizada — Bolos VE*", ""];
-  if (withAmount) lines.push(`${head} = ${conv}`, "");
-  lines.push(`1 $ = Bs ${fmt(rate)}`, "", `🕒 ${stamp()}`, "", `📲 Descarga Bolos VE: ${DOWNLOAD_URL}`);
+  // Primero la tasa (el precio por dólar), luego el total si lo hay.
+  const lines: string[] = ["💱 *Tasa personalizada — Bolos VE*", "", `1 $ = Bs ${fmt(rate)}`];
+  if (withAmount) lines.push("", `${head} = ${conv}`);
+  lines.push("", `🕒 ${stamp()}`, "", `📲 Descarga Bolos VE: ${DOWNLOAD_URL}`);
 
   sendContent({
     text: lines.join("\n"),
     card: {
-      title: withAmount ? `${head} a tu tasa` : "Tasa personalizada",
+      title: "Tasa personalizada",
       rows: [
-        ...(withAmount ? [{ label: head, value: conv }] : []),
         { label: "Tu tasa", value: `Bs ${fmt(rate)}`, sub: "por 1 $" },
+        ...(withAmount ? [{ label: head, value: conv }] : []),
       ],
       stamp: stamp(),
     },
