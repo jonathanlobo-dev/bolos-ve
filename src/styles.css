@@ -343,11 +343,23 @@ body.web [data-native-only] {
   background: #241f08;
   transform: scale(0.98);
 }
-/* Tarjeta de tasa personalizada: borde dorado punteado + botón de compartir. */
+/* Tarjeta de tasa personalizada: borde dorado punteado + botón de compartir.
+   Ocupa el ancho completo (en 2 columnas iría muy angosta para su título). */
 .custom-card {
   border-style: dashed;
   border-color: var(--gold-dim);
   cursor: pointer;
+}
+.cards.layout-columns .custom-card {
+  grid-column: 1 / -1;
+}
+.custom-card .rate-head {
+  min-width: 0;
+}
+.custom-card .rate-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .custom-card .card-share {
   background: var(--surface-2);
