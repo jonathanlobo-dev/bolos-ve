@@ -207,11 +207,19 @@ async function sample() {
 
 app.get("/", (_req, res) => res.send("Bolos VE backend OK. Ver /api/rates"));
 
+// El BCV publica su archivo oficial una vez por día hábil; con re-sincronizar
+// cada pocas horas alcanza sin sobrecargar su web. upsertDaily usa
+// ON CONFLICT...DO UPDATE, así que repetir esto es seguro (no duplica nada).
+const BCV_RESYNC_MS = parseInt(process.env.BCV_RESYNC_MS, 10) || 4 * 3600 * 1000;
+
 const port = process.env.PORT || 3000;
 app.listen(port, async () => {
   console.log(`Bolos VE backend escuchando en :${port}`);
   seedP2P(); // histórico del P2P (dataset abierto, solo la primera vez)
-  await backfillBCV(); // histórico oficial del BCV (solo la primera vez)
+  await backfillBCV(); // histórico oficial del BCV (la primera vez, todo el rango)
   sample();
   setInterval(sample, SAMPLE_MS);
+  // re-sincroniza el BCV periódicamente: sin esto, el histórico oficial se
+  // queda congelado en el día del despliegue y nunca capta las tasas nuevas.
+  setInterval(() => backfillBCV({ force: true }), BCV_RESYNC_MS);
 });

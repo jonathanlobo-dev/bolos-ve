@@ -82,11 +82,17 @@ async function fromBackend(date: string): Promise<Record<string, DayStat> | null
   try {
     const data = await fetchJson(`${base}/api/day?date=${date}`, { absolute: true, timeoutMs: 9000 });
     const out: Record<string, DayStat> = {};
+    // El servidor puede mandar, para el mismo id, un valor "prestado" (carry-
+    // forward de un día anterior, con `desde`) y uno genuino de ese día
+    // exacto (histórico oficial ya sincronizado, o una muestra en vivo). El
+    // genuino SIEMPRE gana, sin importar en qué orden llegue — si no, un
+    // valor viejo podía pisar uno fresco (ej. ver "hoy" mostraba una tasa
+    // BCV de días atrás porque el histórico oficial tardó en sincronizar).
     for (const [serverId, s] of Object.entries((data?.rates ?? {}) as Record<string, DayStat>)) {
       const id = ID_FROM_SERVER[serverId];
-      // "…_live" solo se usa si esa tasa no vino del histórico oficial
-      if (!id || (serverId.endsWith("_live") && out[id])) continue;
-      if (s?.close > 0) out[id] = s;
+      if (!id || !(s?.close > 0)) continue;
+      const existing = out[id];
+      if (!existing || (existing.desde && !s.desde)) out[id] = s;
     }
     return Object.keys(out).length ? out : null;
   } catch (err) {
@@ -156,7 +162,16 @@ export function initHistory(refreshNow: () => void): void {
     }
   });
   input.addEventListener("change", () => {
-    if (input.value) openDate(input.value);
+    if (!input.value) return;
+    // Elegir la fecha de hoy en el calendario debe volver a la vista en
+    // vivo (igual que "Volver a hoy"), no tratarse como una foto fija de
+    // ese día: si no, el precio se quedaba congelado y no volvía a
+    // actualizarse solo, aunque el usuario "seleccionara hoy" a propósito.
+    if (input.value === vzlaToday()) {
+      backToToday(refreshNow);
+      return;
+    }
+    openDate(input.value);
   });
   document.getElementById("histBack")?.addEventListener("click", () => backToToday(refreshNow));
 }
