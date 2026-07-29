@@ -178,6 +178,52 @@
         <div id="alertsList" class="alerts-list"></div>
       </section>
 
+      <!-- ===== HISTORIAL (gráfica) ===== -->
+      <section id="view-history" class="view">
+        <select id="histChartRate" class="input hist-rate-select"></select>
+
+        <div class="hist-current-row">
+          <span id="histChartPrice" class="hist-current-price">—</span>
+          <span id="histChartChange" class="rate-badge flat">—</span>
+        </div>
+        <p id="histChartMeta" class="hint" style="text-align:left;margin:2px 0 0;">Cargando…</p>
+
+        <div id="histRanges" class="hist-ranges">
+          <button class="hist-range-btn" data-days="7">7d</button>
+          <button class="hist-range-btn active" data-days="30">30d</button>
+          <button class="hist-range-btn" data-days="90">90d</button>
+          <button class="hist-range-btn" data-days="180">180d</button>
+          <button class="hist-range-btn" data-days="365">1a</button>
+        </div>
+
+        <div id="histChartWrap" class="hist-chart-wrap">
+          <div id="histChartSvgHolder"></div>
+          <div class="hist-chart-dates">
+            <span id="histChartFrom"></span>
+            <span id="histChartTo"></span>
+          </div>
+        </div>
+
+        <div class="hist-stats">
+          <div class="hist-stat-box">
+            <div class="hist-stat-label">Mínimo</div>
+            <div id="histStatMin" class="hist-stat-value">—</div>
+          </div>
+          <div class="hist-stat-box">
+            <div class="hist-stat-label">Máximo</div>
+            <div id="histStatMax" class="hist-stat-value">—</div>
+          </div>
+          <div class="hist-stat-box">
+            <div class="hist-stat-label">Promedio</div>
+            <div id="histStatAvg" class="hist-stat-value">—</div>
+          </div>
+          <div class="hist-stat-box">
+            <div class="hist-stat-label">Variación</div>
+            <div id="histStatVar" class="hist-stat-value">—</div>
+          </div>
+        </div>
+      </section>
+
       <!-- ===== PANEL CONFIGURACIÓN (bottom sheet) ===== -->
       <div id="configPanel" class="sheet hidden">
         <div class="sheet-content">
@@ -244,6 +290,7 @@
         <nav class="tabbar">
           <button class="tab active" data-view="home"><svg class="ic"><use href="#ic-home" /></svg><span>Inicio</span></button>
           <button class="tab" data-view="calc"><svg class="ic"><use href="#ic-calculator" /></svg><span>Calculadoras</span></button>
+          <button class="tab" data-view="history"><svg class="ic"><use href="#ic-chart" /></svg><span>Historial</span></button>
           <button class="tab" data-view="alerts" data-native-only><svg class="ic"><use href="#ic-bell" /></svg><span>Alertas</span></button>
         </nav>
       </div>

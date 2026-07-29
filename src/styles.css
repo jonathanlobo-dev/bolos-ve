@@ -715,6 +715,81 @@ body.web [data-native-only] {
   margin-top: 12px;
 }
 
+/* ---- Historial (gráfica con scrub) ---- */
+.hist-rate-select {
+  margin-bottom: 10px;
+}
+.hist-current-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.hist-current-price {
+  font-size: 1.7rem;
+  font-weight: 800;
+}
+.hist-ranges {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 4px;
+  overflow-x: auto;
+}
+.hist-range-btn {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 999px;
+  padding: 8px 0;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.hist-range-btn.active {
+  background: var(--gold);
+  color: #1a1a1a;
+  border-color: var(--gold);
+}
+.hist-chart-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 10px 10px;
+  margin-top: 10px;
+  touch-action: pan-y;
+}
+.hist-chart-dates {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  margin-top: 6px;
+  padding: 0 6px;
+}
+.hist-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.hist-stat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.hist-stat-label {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+.hist-stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
 /* ---- Alertas ---- */
 .alerts-list {
   display: flex;

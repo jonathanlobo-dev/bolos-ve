@@ -25,7 +25,7 @@ const STEPS: Step[] = [
   {
     icon: "📅",
     title: "Historial de tasas",
-    text: "Toca el <b>calendario</b> arriba para ver las tasas de cualquier día pasado (el dólar BCV desde 2024). Ideal para saber cuánto estaba una fecha. También puedes crear una <b>tasa personalizada</b> como cuarta tarjeta.",
+    text: "Toca el <b>calendario</b> arriba para ver las tasas de cualquier día pasado (el dólar BCV desde 2024), o entra a la pestaña <b>Historial</b> para ver la gráfica: desliza el dedo sobre la línea para ver el valor de cada día. También puedes crear una <b>tasa personalizada</b> como cuarta tarjeta.",
   },
   {
     icon: "🔔",
