@@ -216,7 +216,10 @@ const port = process.env.PORT || 3000;
 app.listen(port, async () => {
   console.log(`Bolos VE backend escuchando en :${port}`);
   seedP2P(); // histórico del P2P (dataset abierto, solo la primera vez)
-  await backfillBCV(); // histórico oficial del BCV (la primera vez, todo el rango)
+  // force:true también al arrancar: la marca de "ya hecho" vive en el
+  // volumen persistente, así que sin esto un redeploy normal la saltaría
+  // y el primer re-sincronizado real no llegaría hasta dentro de 4 horas.
+  await backfillBCV({ force: true });
   sample();
   setInterval(sample, SAMPLE_MS);
   // re-sincroniza el BCV periódicamente: sin esto, el histórico oficial se
