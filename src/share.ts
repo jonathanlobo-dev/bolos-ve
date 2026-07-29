@@ -226,9 +226,12 @@ export function shareCustomRate(): void {
 
 async function cardToFile(card: ShareCard): Promise<File | null> {
   try {
-    const base64 = await buildShareImage(card);
-    if (!base64) return null;
-    const res = await fetch(base64);
+    const rawBase64 = await buildShareImage(card);
+    if (!rawBase64) return null;
+    const dataUrl = rawBase64.startsWith("data:")
+      ? rawBase64
+      : `data:image/jpeg;base64,${rawBase64}`;
+    const res = await fetch(dataUrl);
     const blob = await res.blob();
     return new File([blob], "bolos-ve.jpg", { type: "image/jpeg" });
   } catch (err) {
