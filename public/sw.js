@@ -2,7 +2,7 @@
 // - App shell: red primero, con caché de respaldo → funciona sin conexión.
 // - API de tasas (Railway): siempre red, nunca se cachea → datos frescos.
 
-const CACHE = "bolos-ve-v1";
+const CACHE = "bolos-ve-v2";
 
 self.addEventListener("install", () => self.skipWaiting());
 

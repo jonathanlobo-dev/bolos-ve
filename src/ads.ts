@@ -69,7 +69,10 @@ export async function initAds(): Promise<void> {
   }
   try {
     const mod = await admobModule();
-    if (!mod) return; // navegador: queda el placeholder web
+    if (!mod) {
+      setSpacer("gone");
+      return; // navegador/PWA: sin publicidad
+    }
     const { AdMob, BannerAdSize, BannerAdPosition } = mod;
     await AdMob.initialize({});
 
