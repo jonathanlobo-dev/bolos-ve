@@ -341,6 +341,7 @@ body.web [data-native-only] {
   border-radius: var(--radius);
   padding: 16px;
   min-width: 0;
+  overflow: hidden; /* nada (ej. el mini-gráfico) puede salirse del borde redondeado */
   user-select: none;
   -webkit-user-select: none;
   transition: transform 0.12s, border-color 0.2s, background 0.2s;
@@ -404,6 +405,7 @@ body.web [data-native-only] {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  min-width: 0; /* permite que .rate-title se achique antes de empujar la gráfica */
 }
 .spark {
   width: 42px;
@@ -413,6 +415,9 @@ body.web [data-native-only] {
 }
 .rate-title {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .spark polyline {
   fill: none;
