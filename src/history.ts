@@ -141,11 +141,19 @@ export function initHistory(refreshNow: () => void): void {
       });
   }
 
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", (e) => {
     input.value = viewing ?? vzlaToday();
-    // showPicker abre el calendario nativo de Android; si no existe, focus.
-    if (typeof (input as any).showPicker === "function") (input as any).showPicker();
-    else input.focus();
+    if (e.target !== input) {
+      if (typeof (input as any).showPicker === "function") {
+        try {
+          (input as any).showPicker();
+        } catch {
+          input.click();
+        }
+      } else {
+        input.click();
+      }
+    }
   });
   input.addEventListener("change", () => {
     if (input.value) openDate(input.value);

@@ -111,18 +111,17 @@ function customCardHtml(): string {
   return `
     <div class="rate-card custom-card" data-id="custom">
       <div class="rate-head">
-        <span class="rate-title">${icon("edit")} Tasa personalizada</span>
+        <span class="rate-title">${icon("edit")} Mi tasa</span>
         <span class="custom-actions">
-          <button class="card-share" aria-label="Compartir tasa personalizada">${icon("share")}</button>
+          <button class="card-share" aria-label="Compartir mi tasa">${icon("share")}</button>
         </span>
       </div>
       ${
         set
           ? `<div class="rate-converted">${convertPriceText(rate)}</div>
              <div class="rate-unit">1 $ = Bs ${fmt(rate)}</div>
-             <div class="rate-badge flat">Toca ${icon("edit")} para cambiarla</div>`
-          : `<div class="rate-converted custom-empty">Toca para fijar tu tasa</div>
-             <div class="rate-unit">Ej: la de tu banco o tu vendedor</div>`
+             <div class="rate-badge flat">${icon("edit")} Editar</div>`
+          : `<div class="custom-empty">Toca para editar</div>`
       }
     </div>`;
 }

@@ -224,6 +224,19 @@ export function shareCustomRate(): void {
   });
 }
 
+async function cardToFile(card: ShareCard): Promise<File | null> {
+  try {
+    const base64 = await buildShareImage(card);
+    if (!base64) return null;
+    const res = await fetch(base64);
+    const blob = await res.blob();
+    return new File([blob], "bolos-ve.jpg", { type: "image/jpeg" });
+  } catch (err) {
+    console.warn("[share] error creando archivo de imagen:", err);
+    return null;
+  }
+}
+
 // Prepara la imagen (si se puede) y abre el menú de compartir del teléfono.
 async function sendContent(content: Content): Promise<void> {
   const { text, card } = content;
@@ -250,14 +263,26 @@ async function sendContent(content: Content): Promise<void> {
     return;
   }
 
-  // Navegador: Web Share API y, si no, copiar al portapapeles.
+  // Navegador Web/PWA: Web Share API con soporte para imagen + texto, o copiar al portapapeles.
   try {
     if (navigator.share) {
-      await navigator.share({ title: "Bolos VE", text });
+      let file: File | null = null;
+      if (card) {
+        toast("Preparando…");
+        file = await cardToFile(card);
+      }
+      const data: ShareData = {
+        title: "Bolos VE",
+        text,
+      };
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        data.files = [file];
+      }
+      await navigator.share(data);
       return;
     }
-  } catch {
-    /* cancelado o no disponible */
+  } catch (err) {
+    console.warn("[share] web share cancelado o error:", err);
   }
   const ok = await copyText(text);
   if (ok) toast("Copiado — pégalo donde quieras");

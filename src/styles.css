@@ -233,15 +233,22 @@ body.web [data-native-only] {
   cursor: pointer;
   white-space: nowrap;
 }
-/* El input de fecha solo abre el calendario nativo: no debe verse. */
+#histBtn {
+  position: relative;
+}
+/* El input de fecha solo abre el calendario nativo: superpuesto e invisible para Safari / iOS. */
 .hidden-date {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   opacity: 0;
-  pointer-events: none;
+  cursor: pointer;
+  pointer-events: auto;
   border: 0;
   padding: 0;
+  z-index: 2;
 }
 /* ¿Me conviene?: campos enlazados (Bs arriba; $ y € al BCV debajo) */
 .conv-bs-grid {
@@ -343,15 +350,11 @@ body.web [data-native-only] {
   background: #241f08;
   transform: scale(0.98);
 }
-/* Tarjeta de tasa personalizada: borde dorado punteado + botón de compartir.
-   Ocupa el ancho completo (en 2 columnas iría muy angosta para su título). */
+/* Tarjeta de tasa personalizada: borde dorado punteado + botón de compartir. */
 .custom-card {
   border-style: dashed;
   border-color: var(--gold-dim);
   cursor: pointer;
-}
-.cards.layout-columns .custom-card {
-  grid-column: 1 / -1;
 }
 .custom-card .rate-head {
   min-width: 0;
@@ -360,13 +363,14 @@ body.web [data-native-only] {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .custom-card .card-share {
   background: var(--surface-2);
   border: none;
   color: var(--gold);
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -374,13 +378,18 @@ body.web [data-native-only] {
   flex-shrink: 0;
 }
 .custom-card .card-share .ic {
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
 }
 .custom-empty {
   color: var(--text-dim);
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 14px;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .custom-card .rate-title .ic {
   width: 15px;
