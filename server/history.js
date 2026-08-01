@@ -109,11 +109,20 @@ async function smcFileUrls() {
   return [...new Set(urls)];
 }
 
-// De la hoja de un día saca { usd, eur } (columna "Venta (ASK)" en Bs.)
+// De la hoja de un día saca { usd, eur, valorDay } (columna "Venta (ASK)" en Bs.).
+// Cada hoja trae DOS fechas: "Fecha Operación" (cuándo se calculó, que es
+// también el nombre de la hoja) y "Fecha Valor" (el día para el que RIGE esa
+// tasa, normalmente un día hábil después). Lo que la gente llama "el BCV de
+// hoy" es la Fecha Valor, no la Operación — hay que guardar el histórico con
+// esa fecha, si no cada tasa queda etiquetada con el día anterior al real.
 function ratesFromSheet(ws) {
   const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true });
   const out = {};
   for (const r of rows) {
+    if (!out.valorDay) {
+      const m = /Fecha Valor:\s*(\d{2})\/(\d{2})\/(\d{4})/.exec(r?.join(" ") ?? "");
+      if (m) out.valorDay = `${m[3]}-${m[2]}-${m[1]}`;
+    }
     const code = String(r?.[0] ?? "").trim().toUpperCase();
     const ask = Number(r?.[5]);
     if (!Number.isFinite(ask) || ask <= 0) continue;
@@ -145,11 +154,13 @@ export async function backfillBCV({ force = false } = {}) {
     try {
       const wb = XLSX.read(await fetchInsecure(url), { type: "buffer" });
       for (const name of wb.SheetNames) {
-        // nombre de hoja = DDMMYYYY
+        // nombre de hoja = DDMMYYYY (Fecha Operación); se usa solo si la hoja
+        // no trae su propia Fecha Valor (no debería pasar, pero por si acaso).
         const m = /^(\d{2})(\d{2})(\d{4})$/.exec(name.trim());
         if (!m) continue;
-        const day = `${m[3]}-${m[2]}-${m[1]}`;
-        const { usd, eur } = ratesFromSheet(wb.Sheets[name]);
+        const opDay = `${m[3]}-${m[2]}-${m[1]}`;
+        const { usd, eur, valorDay } = ratesFromSheet(wb.Sheets[name]);
+        const day = valorDay || opDay;
         if (usd) recordDailyDirect("bcv_usd", day, usd);
         if (eur) recordDailyDirect("bcv_eur", day, eur);
         if (usd || eur) dias++;
