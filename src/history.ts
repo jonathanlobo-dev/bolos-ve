@@ -82,17 +82,24 @@ async function fromBackend(date: string): Promise<Record<string, DayStat> | null
   try {
     const data = await fetchJson(`${base}/api/day?date=${date}`, { absolute: true, timeoutMs: 9000 });
     const out: Record<string, DayStat> = {};
-    // El servidor puede mandar, para el mismo id, un valor "prestado" (carry-
-    // forward de un día anterior, con `desde`) y uno genuino de ese día
-    // exacto (histórico oficial ya sincronizado, o una muestra en vivo). El
-    // genuino SIEMPRE gana, sin importar en qué orden llegue — si no, un
-    // valor viejo podía pisar uno fresco (ej. ver "hoy" mostraba una tasa
-    // BCV de días atrás porque el histórico oficial tardó en sincronizar).
+    const rank: Record<string, number> = {};
+    // Para el mismo id puede llegar más de una fuente: el histórico OFICIAL
+    // del BCV (limpio, un solo valor por día — con o sin `desde` si viene
+    // prestado de un día anterior) y las muestras en vivo (el precio que
+    // fuimos tomando cada 15 min ese día). El oficial siempre manda: las
+    // muestras en vivo pueden abarcar dos tasas distintas si nuestra fuente
+    // anunció la del día siguiente desde la tarde anterior, y eso mostraba
+    // un "Mín/Máx" falso para un día que en realidad tuvo un único valor.
+    // Prioridad: oficial genuino (3) > oficial prestado (2) > muestra en vivo (1).
     for (const [serverId, s] of Object.entries((data?.rates ?? {}) as Record<string, DayStat>)) {
       const id = ID_FROM_SERVER[serverId];
       if (!id || !(s?.close > 0)) continue;
-      const existing = out[id];
-      if (!existing || (existing.desde && !s.desde)) out[id] = s;
+      const isLive = serverId.endsWith("_live");
+      const score = isLive ? 1 : s.desde ? 2 : 3;
+      if (score > (rank[id] ?? 0)) {
+        rank[id] = score;
+        out[id] = s;
+      }
     }
     return Object.keys(out).length ? out : null;
   } catch (err) {

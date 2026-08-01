@@ -18,6 +18,7 @@ import {
   rangeOf,
   recordSample,
   seedP2P,
+  vzlaDay,
 } from "./history.js";
 
 const app = express();
@@ -35,16 +36,30 @@ function parseNum(text) {
 }
 
 // BCV vía DolarVzla (preciso, sin key). Devuelve también el valor anterior y el %.
+//
+// OJO: DolarVzla llama "current" a la tasa que ya se ANUNCIÓ, no a la que ya
+// está VIGENTE — el BCV publica cada tasa desde la tarde anterior a que rija
+// (ej. el viernes ya se sabe la del lunes). Si tomáramos "current" a ciegas,
+// el viernes en la tarde y todo el fin de semana la app mostraría la tasa del
+// lunes como si fuera la de hoy, sin que aún rija. DolarVzla sí manda la
+// fecha de cada valor (`current.date`/`previous.date`), así que se compara
+// contra el día de hoy en Venezuela y se usa "previous" si "current" es de
+// una fecha futura.
 async function bcvFromDolarVzla() {
   const res = await fetch("https://rates.dolarvzla.com/bcv/current.json");
   const j = await res.json();
-  const usd = parseFloat(j?.current?.usd);
-  const eur = parseFloat(j?.current?.eur);
+  const today = vzlaDay();
+  const currentIsFuture = j?.current?.date && j.current.date > today;
+  const usable = currentIsFuture ? j?.previous : j?.current;
+  const usd = parseFloat(usable?.usd);
+  const eur = parseFloat(usable?.eur);
   return {
     usd: Number.isFinite(usd) ? usd : null,
     eur: Number.isFinite(eur) ? eur : null,
-    prevUsd: parseFloat(j?.previous?.usd) || null,
-    prevEur: parseFloat(j?.previous?.eur) || null,
+    // "anterior" para el badge de cambio: si usamos previous como vigente,
+    // ya no tenemos con qué compararlo dentro de esta misma respuesta.
+    prevUsd: currentIsFuture ? null : parseFloat(j?.previous?.usd) || null,
+    prevEur: currentIsFuture ? null : parseFloat(j?.previous?.eur) || null,
   };
 }
 
