@@ -261,6 +261,14 @@ function renderNextBcv(next: NextBcv | null | undefined): void {
   }
   const dateLabel = prettyWeekday(next.date);
   const curOf = (id: string) => current?.rates.find((r) => r.id === id)?.price;
+  const same = (val: number | null, id: string) => {
+    const cur = curOf(id);
+    return !val || (cur != null && Math.abs(cur - Math.round(val * 100) / 100) < 0.005);
+  };
+  if (same(next.usd, "bcv_usd") && same(next.eur, "bcv_eur")) {
+    banner.classList.add("hidden");
+    return;
+  }
   const part = (sym: string, val: number | null, id: string) => {
     if (!val) return null;
     const v = Math.round(val * 100) / 100;
