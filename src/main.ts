@@ -16,6 +16,7 @@ import { initDaily, setDailyRates } from "./daily";
 import { initBackButton } from "./back";
 import { initHistory, isViewingHistory } from "./history";
 import { initHistoryChart } from "./historyChart";
+import { initInstallPrompt } from "./installPrompt";
 
 const REFRESH_MS = 5 * 60 * 1000; // refresco automático cada 5 min
 const MIN_REFRESH_MS = 60 * 1000; // al volver a la app, no repetir si hay datos de hace <1 min
@@ -141,6 +142,7 @@ function init(): void {
   initBackButton();
   initHistory(refresh);
   initHistoryChart();
+  initInstallPrompt();
 
   // gesto oculto: mantener el logo ~3s muestra y copia el ID del dispositivo.
   // Sirve para agregar un dispositivo a ADMIN_DEVICE_IDS (ads.ts) — a quien no
