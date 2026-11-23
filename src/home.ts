@@ -2,7 +2,7 @@
 // El monto se ingresa estilo calculadora: arranca en 1, y al escribir se llena
 // de derecha a izquierda como centavos (0,01 → 0,15 → 1,50 → 15,00).
 
-import { calcGap, dailyHistory, type Rate, type RatesResult } from "./rateProvider";
+import { calcGap, dailyHistory, type Rate, type RatesResult, type NextBcv } from "./rateProvider";
 import { getConfig, onConfigChange, visibleOrderedIds } from "./config";
 import { attachAmountInput, type AmountHandle } from "./amountInput";
 import { getCustomRate, setCustomRate } from "./customRate";
@@ -238,10 +238,50 @@ function renderGap(result: RatesResult): void {
   strip.innerHTML = `${icon("chart")} Brecha BCV ↔ P2P: <b>${fmt(gap)}%</b>`;
 }
 
+function prettyWeekday(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  const day = dt.toLocaleDateString("es-VE", { weekday: "short" });
+  return `${day} ${d}/${m}`;
+}
+
+function renderNextBcv(next: NextBcv | null | undefined): void {
+  let banner = document.getElementById("nextBcvBanner");
+  if (!next || (!next.usd && !next.eur)) {
+    if (banner) banner.classList.add("hidden");
+    return;
+  }
+  if (!banner) {
+    const container = document.getElementById("cardsContainer");
+    if (!container) return;
+    banner = document.createElement("div");
+    banner.id = "nextBcvBanner";
+    banner.className = "next-bcv-banner";
+    container.parentElement!.insertBefore(banner, container.nextSibling);
+  }
+  const dateLabel = prettyWeekday(next.date);
+  const curOf = (id: string) => current?.rates.find((r) => r.id === id)?.price;
+  const part = (sym: string, val: number | null, id: string) => {
+    if (!val) return null;
+    const v = Math.round(val * 100) / 100;
+    const cur = curOf(id);
+    const note = cur != null && Math.abs(cur - v) < 0.005 ? " (sin cambio)" : "";
+    return `${sym} ${fmt(v)}${note}`;
+  };
+  const parts = [part("$", next.usd, "bcv_usd"), part("€", next.eur, "bcv_eur")].filter(Boolean);
+  banner.innerHTML = `
+    <details class="next-bcv-details">
+      <summary>${icon("bell")} Nueva tasa BCV publicada (rige desde ${dateLabel})</summary>
+      <div class="next-bcv-body">${parts.join(" · ")}</div>
+    </details>`;
+  banner.classList.remove("hidden");
+}
+
 export function renderHome(result: RatesResult): void {
   current = result;
   renderCards();
   renderGap(result);
+  renderNextBcv(result.nextBcv);
 
   const updated = document.getElementById("homeUpdated");
   if (updated) {

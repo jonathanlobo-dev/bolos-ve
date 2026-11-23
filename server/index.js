@@ -53,6 +53,13 @@ async function bcvFromDolarVzla() {
   const usable = currentIsFuture ? j?.previous : j?.current;
   const usd = parseFloat(usable?.usd);
   const eur = parseFloat(usable?.eur);
+
+  // Si current es futuro, lo exponemos como "next" para que la app pueda
+  // mostrar un aviso: "Nueva tasa BCV publicada (rige desde <fecha>)".
+  const nextUsd = currentIsFuture ? parseFloat(j.current.usd) || null : null;
+  const nextEur = currentIsFuture ? parseFloat(j.current.eur) || null : null;
+  const nextDate = currentIsFuture ? j.current.date : null;
+
   return {
     usd: Number.isFinite(usd) ? usd : null,
     eur: Number.isFinite(eur) ? eur : null,
@@ -60,6 +67,9 @@ async function bcvFromDolarVzla() {
     // ya no tenemos con qué compararlo dentro de esta misma respuesta.
     prevUsd: currentIsFuture ? null : parseFloat(j?.previous?.usd) || null,
     prevEur: currentIsFuture ? null : parseFloat(j?.previous?.eur) || null,
+    nextUsd,
+    nextEur,
+    nextDate,
   };
 }
 
@@ -147,6 +157,10 @@ async function buildRates() {
     bcv_usd_prev: bcv?.prevUsd ?? null,
     bcv_eur_prev: bcv?.prevEur ?? null,
     p2p_usdt: p2p ?? null,
+    // Tasa BCV futura (publicada pero aún no vigente, ej. viernes → lunes).
+    bcv_usd_next: bcv?.nextUsd ?? null,
+    bcv_eur_next: bcv?.nextEur ?? null,
+    bcv_next_date: bcv?.nextDate ?? null,
     updatedAt: new Date().toISOString(),
   };
 }

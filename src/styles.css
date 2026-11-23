@@ -208,6 +208,33 @@ body.web [data-native-only] {
 .gap-strip b {
   color: var(--gold);
 }
+/* Banner "Nueva tasa BCV publicada" */
+.next-bcv-banner {
+  margin-top: 10px;
+}
+.next-bcv-details {
+  background: var(--surface);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+.next-bcv-details summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--gold);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.next-bcv-details summary::-webkit-details-marker { display: none; }
+.next-bcv-details[open] summary { margin-bottom: 8px; }
+.next-bcv-body {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  padding-left: 2px;
+}
 /* Franja "Viendo el 15/07/2026 · Volver a hoy" */
 .hist-strip {
   display: flex;

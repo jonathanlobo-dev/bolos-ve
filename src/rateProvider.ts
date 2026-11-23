@@ -17,11 +17,18 @@ export interface Rate {
   lastUpdate: string;
 }
 
+export interface NextBcv {
+  usd: number | null;
+  eur: number | null;
+  date: string; // YYYY-MM-DD
+}
+
 export interface RatesResult {
   rates: Rate[];
   fetchedAt: number; // epoch ms
   source: string;
   stale: boolean;
+  nextBcv?: NextBcv | null;
 }
 
 const CACHE_KEY = "bolitas.rates.cache";
@@ -222,9 +229,11 @@ export function getBackendUrl(): string {
   return (custom || DEFAULT_BACKEND).replace(/\/$/, "");
 }
 
-async function tryBackend(): Promise<Rate[]> {
+interface BackendResult { rates: Rate[]; nextBcv: NextBcv | null }
+
+async function tryBackend(): Promise<BackendResult> {
   const base = getBackendUrl();
-  if (!base) return [];
+  if (!base) return { rates: [], nextBcv: null };
   try {
     const url = `${base}/api/rates`;
     const { Capacitor, CapacitorHttp } = await import("@capacitor/core");
@@ -266,10 +275,21 @@ async function tryBackend(): Promise<Rate[]> {
     add(data?.bcv_usd, "bcv_usd", "BCV Dólar", "🏛️", "$", data?.bcv_usd_prev);
     add(data?.p2p_usdt, "binance_usd", "P2P (USDT)", "👛", "$");
     add(data?.bcv_eur, "bcv_eur", "BCV Euro", "💶", "€", data?.bcv_eur_prev);
-    return out;
+
+    let nextBcv: NextBcv | null = null;
+    const nDate = data?.bcv_next_date;
+    if (nDate) {
+      const nUsd = num(data?.bcv_usd_next);
+      const nEur = num(data?.bcv_eur_next);
+      if (nUsd > 0 || nEur > 0) {
+        nextBcv = { usd: nUsd > 0 ? nUsd : null, eur: nEur > 0 ? nEur : null, date: nDate };
+      }
+    }
+
+    return { rates: out, nextBcv };
   } catch (err) {
     console.warn("[rateProvider] backend propio falló:", err);
-    return [];
+    return { rates: [], nextBcv: null };
   }
 }
 
@@ -557,9 +577,12 @@ export function localDay(date: string): Record<string, DayStat> {
 export async function getRates(): Promise<RatesResult> {
   const collected = new Map<string, Rate>();
   const sources = new Set<string>();
+  let nextBcv: NextBcv | null = null;
 
   // 0) Backend propio (si está configurado): la fuente más precisa.
-  for (const r of await tryBackend()) {
+  const backend = await tryBackend();
+  nextBcv = backend.nextBcv;
+  for (const r of backend.rates) {
     if (!collected.has(r.id)) {
       collected.set(r.id, r);
       sources.add("backend");
@@ -641,7 +664,7 @@ export async function getRates(): Promise<RatesResult> {
     recordDaily(rates); // snapshot diario para el mini-gráfico de 7 días
     const source = [...sources].join(" + ");
     console.info(`[rateProvider] OK (${source}): ${rates.length} tasas`);
-    const result: RatesResult = { rates, fetchedAt: Date.now(), source, stale: false };
+    const result: RatesResult = { rates, fetchedAt: Date.now(), source, stale: false, nextBcv };
     save(CACHE_KEY, result);
     return result;
   }
